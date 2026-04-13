@@ -1,0 +1,22 @@
+{
+  "name": "campusswap",
+  "version": "1.0.0",
+  "description": "CampusSwap - Uniswap-Inspired AMM for University Reward Token Exchange",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "test:coverage": "npx hardhat coverage",
+    "deploy:local": "npx hardhat run scripts/deploy/deploy_all.js",
+    "deploy:sepolia": "npx hardhat run scripts/deploy/deploy_all.js --network sepolia",
+    "verify": "npx hardhat verify --network sepolia"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.0",
+    "solidity-docgen": "^0.6.0-beta.36"
+  }
+}
