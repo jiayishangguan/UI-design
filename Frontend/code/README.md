@@ -23,3 +23,4 @@ http://localhost:8080/Frontend/code/
 - The frontend only reads ABI files from existing Hardhat artifacts.
 - Contract addresses are configured in `Frontend/code/config.js`.
 - No backend, contract, script, or test files are modified by this frontend.
+..
