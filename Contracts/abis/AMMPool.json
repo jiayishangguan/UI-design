@@ -1,0 +1,17 @@
+{
+  "abi": [
+    {"type":"function","stateMutability":"view","name":"initialized","inputs":[],"outputs":[{"type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"TARGET_RT","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getReserves","inputs":[],"outputs":[{"name":"gt","type":"uint256"},{"name":"rt","type":"uint256"},{"name":"currentK","type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getCurrentFeeRate","inputs":[],"outputs":[{"name":"bp","type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getAmountOut","inputs":[{"name":"amountIn","type":"uint256"},{"name":"isGTtoRT","type":"bool"}],"outputs":[{"name":"amountOut","type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getUsedGTToday","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getRemainingDailyGT","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getHoldingLimitGT","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getCurrentImmediateLimit","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getPoolStatus","inputs":[],"outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"},{"type":"uint256"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"swapGTforRT","inputs":[{"name":"gtIn","type":"uint256"},{"name":"minRTOut","type":"uint256"}],"outputs":[{"name":"rtOut","type":"uint256"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"swapRTforGT","inputs":[{"name":"rtIn","type":"uint256"},{"name":"minGTOut","type":"uint256"}],"outputs":[{"name":"gtOut","type":"uint256"}]},
+    {"type":"event","name":"Swap","inputs":[{"indexed":true,"name":"user","type":"address"},{"indexed":false,"name":"isGTtoRT","type":"bool"},{"indexed":false,"name":"amountIn","type":"uint256"},{"indexed":false,"name":"amountOut","type":"uint256"},{"indexed":false,"name":"feeRate","type":"uint256"}],"anonymous":false}
+  ]
+}

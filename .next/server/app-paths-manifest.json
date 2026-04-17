@@ -1,0 +1,9 @@
+{
+  "/submit/page": "app/submit/page.js",
+  "/page": "app/page.js",
+  "/governance/page": "app/governance/page.js",
+  "/swap/page": "app/swap/page.js",
+  "/rewards/page": "app/rewards/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/api/profile/route": "app/api/profile/route.js"
+}

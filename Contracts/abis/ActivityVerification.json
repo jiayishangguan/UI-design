@@ -1,0 +1,21 @@
+{
+  "abi": [
+    {"type":"function","stateMutability":"view","name":"taskCount","inputs":[],"outputs":[{"name":"","type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"currentDay","inputs":[],"outputs":[{"name":"","type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"tasks","inputs":[{"name":"","type":"uint256"}],"outputs":[{"name":"submitter","type":"address"},{"name":"actionType","type":"string"},{"name":"proofCID","type":"string"},{"name":"gtReward","type":"uint256"},{"name":"approvals","type":"uint256"},{"name":"rejections","type":"uint256"},{"name":"status","type":"uint8"},{"name":"timestamp","type":"uint256"},{"name":"voteDeadline","type":"uint256"},{"name":"gtQueued","type":"bool"},{"name":"gtClaimed","type":"bool"},{"name":"verifiers","type":"address[3]"},{"name":"verifierCount","type":"uint8"}]},
+    {"type":"function","stateMutability":"view","name":"hasVoted","inputs":[{"name":"","type":"uint256"},{"name":"","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"voteChoice","inputs":[{"name":"","type":"uint256"},{"name":"","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"getTaskVerifiers","inputs":[{"name":"_taskId","type":"uint256"}],"outputs":[{"name":"","type":"address[3]"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"submitTask","inputs":[{"name":"_actionType","type":"string"},{"name":"_proofCID","type":"string"},{"name":"_gtReward","type":"uint256"}],"outputs":[{"name":"taskId","type":"uint256"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"voteOnTask","inputs":[{"name":"_taskId","type":"uint256"},{"name":"_approve","type":"bool"}],"outputs":[]},
+    {"type":"function","stateMutability":"nonpayable","name":"committeeReplaceVote","inputs":[{"name":"_taskId","type":"uint256"},{"name":"_verifierSlot","type":"uint256"},{"name":"_approve","type":"bool"}],"outputs":[]},
+    {"type":"function","stateMutability":"nonpayable","name":"claimQueuedGT","inputs":[{"name":"_taskId","type":"uint256"}],"outputs":[]},
+    {"type":"function","stateMutability":"nonpayable","name":"finalizeExpiredTask","inputs":[{"name":"_taskId","type":"uint256"}],"outputs":[]},
+    {"type":"event","name":"TaskSubmitted","inputs":[{"indexed":true,"name":"taskId","type":"uint256"},{"indexed":true,"name":"submitter","type":"address"},{"indexed":false,"name":"actionType","type":"string"},{"indexed":false,"name":"gtReward","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"VoteCast","inputs":[{"indexed":true,"name":"taskId","type":"uint256"},{"indexed":true,"name":"voter","type":"address"},{"indexed":false,"name":"approve","type":"bool"}],"anonymous":false},
+    {"type":"event","name":"TaskFinalized","inputs":[{"indexed":true,"name":"taskId","type":"uint256"},{"indexed":false,"name":"status","type":"uint8"}],"anonymous":false},
+    {"type":"event","name":"VerifiersAssigned","inputs":[{"indexed":true,"name":"taskId","type":"uint256"},{"indexed":false,"name":"verifiers","type":"address[3]"}],"anonymous":false},
+    {"type":"event","name":"QueuedGTClaimed","inputs":[{"indexed":true,"name":"taskId","type":"uint256"},{"indexed":true,"name":"submitter","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"CommitteeReplacedVote","inputs":[{"indexed":true,"name":"taskId","type":"uint256"},{"indexed":true,"name":"committeeMember","type":"address"},{"indexed":true,"name":"absentVerifier","type":"address"},{"indexed":false,"name":"approve","type":"bool"}],"anonymous":false}
+  ]
+}

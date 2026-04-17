@@ -1,0 +1,10 @@
+{
+  "abi": [
+    {"type":"function","stateMutability":"view","name":"nextRewardId","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"rewards","inputs":[{"type":"uint256"}],"outputs":[{"name":"name","type":"string"},{"name":"baseCost","type":"uint256"},{"name":"active","type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"getCurrentCost","inputs":[{"type":"uint256"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getCatalog","inputs":[],"outputs":[{"components":[{"name":"name","type":"string"},{"name":"baseCost","type":"uint256"},{"name":"active","type":"bool"}],"type":"tuple[]"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"redeem","inputs":[{"type":"uint256"}],"outputs":[]},
+    {"type":"event","name":"RewardRedeemed","inputs":[{"indexed":true,"name":"user","type":"address"},{"indexed":true,"name":"rewardId","type":"uint256"},{"indexed":false,"name":"cost","type":"uint256"}],"anonymous":false}
+  ]
+}

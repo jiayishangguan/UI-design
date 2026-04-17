@@ -1,0 +1,24 @@
+{
+  "abi": [
+    {"type":"function","stateMutability":"view","name":"VERIFIER_THRESHOLD","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"STAKE_AMOUNT","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"MIN_STAKE","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"currentPhase","inputs":[],"outputs":[{"type":"uint8"}]},
+    {"type":"function","stateMutability":"view","name":"currentRound","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"activeTaskCount","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"isEligible","inputs":[{"type":"address"}],"outputs":[{"type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"getCandidates","inputs":[],"outputs":[{"type":"address[]"}]},
+    {"type":"function","stateMutability":"view","name":"getVerifierList","inputs":[],"outputs":[{"type":"address[]"}]},
+    {"type":"function","stateMutability":"view","name":"getActiveVerifierCount","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getLockedStake","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"getPhase","inputs":[],"outputs":[{"type":"uint8"}]},
+    {"type":"function","stateMutability":"view","name":"verifiers","inputs":[{"type":"address"}],"outputs":[{"name":"stakedGT","type":"uint256"},{"name":"consecutiveCount","type":"uint256"},{"name":"lastTaskBlock","type":"uint256"},{"name":"cooldownUntilRound","type":"uint256"},{"name":"errorCounter","type":"uint256"},{"name":"suspensionEnd","type":"uint256"},{"name":"isActive","type":"bool"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"joinVerifierPool","inputs":[],"outputs":[]},
+    {"type":"function","stateMutability":"nonpayable","name":"leaveVerifierPool","inputs":[],"outputs":[]},
+    {"type":"event","name":"VerifierJoined","inputs":[{"indexed":true,"name":"verifier","type":"address"},{"indexed":false,"name":"stakedAmount","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"VerifierLeft","inputs":[{"indexed":true,"name":"verifier","type":"address"},{"indexed":false,"name":"returnedAmount","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"VerifierSuspended","inputs":[{"indexed":true,"name":"verifier","type":"address"},{"indexed":false,"name":"until","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"VerifierAutoRemoved","inputs":[{"indexed":true,"name":"verifier","type":"address"},{"indexed":false,"name":"returnedStake","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"PhaseUpdated","inputs":[{"indexed":false,"name":"newPhase","type":"uint8"}],"anonymous":false}
+  ]
+}

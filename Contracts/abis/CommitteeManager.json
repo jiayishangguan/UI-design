@@ -1,0 +1,20 @@
+{
+  "abi": [
+    {"type":"function","stateMutability":"view","name":"proposalCount","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"approvalThreshold","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"PROPOSAL_TTL","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"isCommitteeMember","inputs":[{"type":"address"}],"outputs":[{"type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"getMembers","inputs":[],"outputs":[{"type":"address[]"}]},
+    {"type":"function","stateMutability":"view","name":"getMemberCount","inputs":[],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"hasApproved","inputs":[{"type":"uint256"},{"type":"address"}],"outputs":[{"type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"getEffectiveStatus","inputs":[{"type":"uint256"}],"outputs":[{"type":"uint8"}]},
+    {"type":"function","stateMutability":"view","name":"getProposal","inputs":[{"type":"uint256"}],"outputs":[{"name":"actionType","type":"uint8"},{"name":"targetContract","type":"address"},{"name":"proposer","type":"address"},{"name":"approvalCount","type":"uint256"},{"name":"status","type":"uint8"},{"name":"createdAt","type":"uint256"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"propose","inputs":[{"name":"_actionType","type":"uint8"},{"name":"_targetContract","type":"address"},{"name":"_data","type":"bytes"}],"outputs":[{"name":"proposalId","type":"uint256"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"approveProposal","inputs":[{"type":"uint256"}],"outputs":[]},
+    {"type":"function","stateMutability":"nonpayable","name":"cancelProposal","inputs":[{"type":"uint256"}],"outputs":[]},
+    {"type":"event","name":"ProposalCreated","inputs":[{"indexed":true,"name":"proposalId","type":"uint256"},{"indexed":false,"name":"actionType","type":"uint8"},{"indexed":true,"name":"proposer","type":"address"},{"indexed":true,"name":"targetContract","type":"address"}],"anonymous":false},
+    {"type":"event","name":"ProposalApproved","inputs":[{"indexed":true,"name":"proposalId","type":"uint256"},{"indexed":true,"name":"approver","type":"address"},{"indexed":false,"name":"currentApprovals","type":"uint256"}],"anonymous":false},
+    {"type":"event","name":"ProposalExecuted","inputs":[{"indexed":true,"name":"proposalId","type":"uint256"},{"indexed":false,"name":"actionType","type":"uint8"}],"anonymous":false},
+    {"type":"event","name":"ProposalCancelled","inputs":[{"indexed":true,"name":"proposalId","type":"uint256"},{"indexed":true,"name":"canceller","type":"address"}],"anonymous":false}
+  ]
+}
