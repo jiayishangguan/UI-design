@@ -1,0 +1,12 @@
+.env
+.env.*
+node_modules/
+dist/
+build/
+.DS_Store
+package-lock.json
+Thumbs.db
+artifacts/
+cache/
+coverage/
+coverage.json
