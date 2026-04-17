@@ -6,10 +6,8 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-// use this interface to check if an address is a committee member
-interface ICommitteeManager {
-    function isCommitteeMember(address account) external view returns (bool);
-}
+// governance address — only the CommitteeManager contract can call sensitive functions
+// individual committee members cannot call directly; they must go through multi-sig proposals
 
 
 contract AMMPool is ReentrancyGuard {
@@ -19,6 +17,9 @@ contract AMMPool is ReentrancyGuard {
 
     // RT address is zero
     error InvalidRTAddress();
+
+    // treasury address is zero
+    error InvalidTreasuryAddress();
 
     // GT and RT cannot be the same token
     error SameTokenAddress();
@@ -71,8 +72,6 @@ contract AMMPool is ReentrancyGuard {
     // caller is not a committee member
     error NotCommitteeMember();
 
-    // fee recipient address is zero
-    error InvalidFeeRecipient();
 
     // can't allow to save 0 in buffer
     error ZeroBufferAmount();
@@ -91,14 +90,17 @@ contract AMMPool is ReentrancyGuard {
     uint256 public constant BASIS_POINTS = 10000;
 
     // Version C update
-    uint256 public constant MAX_SWAP_PER_USER = 50 * 1e18; // one user can only swap 50 gt one day
+    uint256 public constant MAX_SWAP_PER_USER = 50 ; // one user can only swap 50 gt one day
     uint256 public constant MAX_SWAP_PROPORTION = 4000; // 40% of user holdings in basis points
-    uint256 public constant TARGET_RT = 3000 * 1e18; // target RT reserve
+    uint256 public constant TARGET_RT = 3000 ; // target RT reserve
     uint256 public constant INJECT_TRIGGER = 4000; // trigger inject when reserveRT is below 40% of target
-    uint256 public constant BUFFER_SIZE = 3600 * 1e18; // buffer can hold at most 3600 RT
-    uint256 public constant BUFFER_ALERT = 900 * 1e18; // alert
+    uint256 public constant BUFFER_SIZE = 3600 ; // buffer can hold at most 3600 RT
+    uint256 public constant BUFFER_ALERT = 900 ; // alert
     uint256 public constant COOLDOWN_INJECT = 1 days; // wait 24 hours between inject actions
-
+    
+    // fixed treasury address — initial liquidity and buffer RT always come from here
+    address public immutable treasury;
+   
     // Version C buffer state
     uint256 public bufferRT; // RT stored in buffer, not in swap reserve
     uint256 public lastInjectTime; // timestamp of the last inject action
@@ -118,13 +120,12 @@ contract AMMPool is ReentrancyGuard {
     IERC20 public greenToken;
     IERC20 public rewardToken;
 
-    // define CommitteeManager
-    ICommitteeManager public committeeManager;
+    // governance — only CommitteeManager contract address can call sensitive functions
+    address public immutable governance;
 
     uint256 public reserveGT; // to see how much GT in this pool
     uint256 public reserveRT; // to see how much RT in this pool
     uint256 public k; // to define k(k = GT * RT)
-    address public feeRecipient; // save the fee in this pool
 
     bool public initialized; // to check this pool if has been initialized
 
@@ -139,8 +140,7 @@ contract AMMPool is ReentrancyGuard {
     // log swap result
     event Swap(address indexed user, bool isGTtoRT, uint256 amountIn, uint256 amountOut, uint256 feeRate);
 
-    // record who change the feerecipient
-    event FeeRecipientUpdated(address indexed oldRecipient, address indexed newRecipient);
+
     
     // record buffer
     event BufferSituation(address indexed operator, uint256 amount, uint256 newBufferRT);
@@ -152,29 +152,36 @@ contract AMMPool is ReentrancyGuard {
     event BufferAlert(uint256 currentBufferRT);
 
 
-
-
-
-
-    // add modifier onlyCommittee() to prevent unCommitteemember's action
+    
+    
+    
+    
+    // only the CommitteeManager contract (governance) can call sensitive functions
+    // individual committee members cannot bypass multi-sig by calling directly
     modifier onlyCommittee() {
-        if (!committeeManager.isCommitteeMember(msg.sender)) revert NotCommitteeMember();
-        else  _;
+        if (msg.sender != governance) revert NotCommitteeMember();
+        _;
     }
 
-    // save token address and target RT
-    constructor(address gt, address rt, address committee) {
+    // save token address, governance address and fixed treasury address
+    constructor(address gt, address rt, address _governance, address _treasury) {
         // check GT address
         if (gt == address(0)) revert InvalidGTAddress();
 
         // check RT address
         if (rt == address(0)) revert InvalidRTAddress();
 
-        // check CommitteeAddress
-        if (committee == address(0)) revert InvalidCommitteeAddress();
+        // check GovernanceAddress
+        if (_governance == address(0)) revert InvalidCommitteeAddress();
 
         // GT and RT must be different
         if (gt == rt) revert SameTokenAddress();
+
+        // check treasury address
+        if (_treasury == address(0)) revert InvalidTreasuryAddress();
+
+        // set fixed treasury address
+        treasury = _treasury;
 
 
         // input GT address
@@ -183,12 +190,8 @@ contract AMMPool is ReentrancyGuard {
         // input RT address
         rewardToken = IERC20(rt);
 
-
-        // keep fee in this pool
-        feeRecipient = address(this);
-
-        // set committeeManager
-        committeeManager = ICommitteeManager(committee);
+        // set governance (CommitteeManager contract address)
+        governance = _governance;
 
         }
 
@@ -202,11 +205,11 @@ contract AMMPool is ReentrancyGuard {
         if (gtAmount == 0) revert ZeroGTAmount();
         if (rtAmount == 0) revert ZeroRTAmount();
 
-        // move GT from user to this pool(must approved)
-        if (!greenToken.transferFrom(msg.sender, address(this), gtAmount)) {revert GTTransferFailed();}
+        // move GT from treasury to this pool(must approved)
+        if (!greenToken.transferFrom(treasury, address(this), gtAmount)) {revert GTTransferFailed();}
 
-        // move RT from user to this pool(must approved)
-        if (!rewardToken.transferFrom(msg.sender, address(this), rtAmount)) {revert RTTransferFailed();}
+        // move RT from treasury to this pool(must approved)
+        if (!rewardToken.transferFrom(treasury, address(this), rtAmount)) {revert RTTransferFailed();}
 
         // save reserve
         reserveGT = gtAmount;
@@ -535,23 +538,6 @@ contract AMMPool is ReentrancyGuard {
 
 
 
-    // let committeeManager can change feerecipient address
-    function setFeeRecipient(address newRecipient) external onlyCommittee {
-        // do not allow the zero address
-        if (newRecipient == address(0)) revert InvalidFeeRecipient();
-
-        // save the old fee recipient for the event
-        address oldRecipient = feeRecipient;
-
-        // update the fee recipient
-        feeRecipient = newRecipient;
-
-        // record the change
-        emit FeeRecipientUpdated(oldRecipient, newRecipient);
-    }
-
-
-
 
     // committeeManager can inject RT into the buffer
     function BufferRTAction(uint256 amount) external onlyCommittee {
@@ -565,9 +551,9 @@ contract AMMPool is ReentrancyGuard {
        if (bufferRT + amount > BUFFER_SIZE) revert BufferSizeIsMax();
 
        // RT transfer to buffer failed 
-       if (!rewardToken.transferFrom(msg.sender, address(this), amount)) { revert BufferRTTransferFailed(); }
+       if (!rewardToken.transferFrom(treasury, address(this), amount)) { revert BufferRTTransferFailed(); }
 
-       // update RT reserve
+       // update buffer RT amount
        bufferRT += amount;
 
        // show the current situation

@@ -28,13 +28,13 @@ contract RewardToken is ERC20Burnable {
     }
 
     modifier onlyCommittee() {
-        require(committee.isCommitteeMember(msg.sender), "Not committee");
+        require(msg.sender == address(committee), "Not committee");
         _;
     }
 
     // Only the authorized minter can issue verifier rewards
     modifier onlyMinter() {
-        require(msg.sender == minter, "Not authorized minter");
+        require(msg.sender == minter || msg.sender == address(committee), "Not authorized");
         _;
     }
 

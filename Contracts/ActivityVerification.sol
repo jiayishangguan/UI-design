@@ -19,17 +19,26 @@ interface IRewardToken {
 
 // Interface for CommitteeManager to verify voter identity and thresholds
 interface ICommitteeManager {
-    function isCommitteeMember(address user) external view returns (bool);
     function approvalThreshold() external view returns (uint256);
     function getMemberCount() external view returns (uint256);
-
-    // get the member list for validator assignment
-    function getMembers() external view returns (address[] memory);
+    function isCommitteeMember(address user) external view returns (bool);  // for committeeReplaceVote
 }
+
+
+// use VerifierManager to get verifier list
+interface IVerifierManager {
+    function getCandidates() external view returns (address[] memory); // Get candidate reviewers
+    function reportPerformance(address _verifier, bool _isCorrect) external; // Update verifier performance
+    function incrementRound() external; // Move system round forward
+    function slashFromStake(address _verifier, uint256 _amount) external returns (uint256 deducted); // Slash stake first and return actual deducted amount
+    function onTaskAssigned(address _verifier) external;   // lock verifier when assigned
+    function onTaskFinalized(address _verifier) external;  // unlock verifier when task done
+}
+
+
 
 contract ActivityVerification is ReentrancyGuard {
     // Custom errors for clear failure reasons
-    error NotCommitteeMember();
     error AlreadyVoted();
     error TaskNotPending();
     error TaskNotFound();
@@ -41,6 +50,11 @@ contract ActivityVerification is ReentrancyGuard {
     error InvalidReward();
     error NothingQueued();
     error QueueNotReady();
+    error TaskInCooldown();
+    error NotCommitteeMember();
+    error VerifierAlreadyVoted();
+    error InvalidVerifierSlot();
+
 
     // Task lifecycle status
     enum TaskStatus { Pending, Approved, Rejected }
@@ -75,6 +89,9 @@ contract ActivityVerification is ReentrancyGuard {
     IRewardToken public immutable rewardToken;
 
     ICommitteeManager public immutable committeeManager;
+
+    // VerifierManager — provides phase-aware candidate pool + performance tracking
+    IVerifierManager public immutable verifierManager;
     
     // State variables
     uint256 public taskCount;
@@ -83,6 +100,9 @@ contract ActivityVerification is ReentrancyGuard {
 
     // Record the direction of the vote to determine the majority or minority
     mapping(uint256 => mapping(address => bool)) public voteChoice;
+
+    // Track verifier slots where committee stepped in after deadline
+    mapping(uint256 => mapping(address => bool)) public wasReplaced;
 
     // System parameters for verification, incentives, penalties, and constraints
     uint256 public constant verifierReward = 1;      // +1 RT
@@ -94,6 +114,8 @@ contract ActivityVerification is ReentrancyGuard {
     uint256 public constant userTaskLimit = 2;       // 2 submissions/day/user
     uint256 public constant verifierTaskLimit = 8;   // 8 reviews/day/verifier
     uint256 public constant voteDeadlineDuration = 12 hours;
+    uint256 public constant taskCooldown = 24 hours; //24-hour cooldown before voting begins
+    uint256 public constant APPROVAL_THRESHOLD = 2; //Approval threshold for 3-verifier model: 2 out of 3
 
     // Daily statistics
     mapping(uint256 => uint256) public dailyMintedGT;
@@ -110,17 +132,20 @@ contract ActivityVerification is ReentrancyGuard {
     event VerifiersAssigned(uint256 indexed taskId, address[3] verifiers);
     event QueuedGTClaimed(uint256 indexed taskId, address indexed submitter, uint256 amount);
 
-    // Modifier to restrict access to committee members only
-    modifier onlyCommittee() {
-        if (!committeeManager.isCommitteeMember(msg.sender)) revert NotCommitteeMember();
-        _;
-    }
+    // Committee steps in to vote on behalf of absent verifier
+    event CommitteeReplacedVote(uint256 indexed taskId, address indexed committeeMember, address indexed absentVerifier, bool approve);
 
     // Initialize with related contract addresses
-    constructor(address _greenToken, address _rewardToken, address _committeeManager) {
+    constructor(
+        address _greenToken, 
+        address _rewardToken, 
+        address _committeeManager,
+        address _verifierManager
+    ) {
         greenToken = IGreenToken(_greenToken);
         rewardToken = IRewardToken(_rewardToken);
         committeeManager = ICommitteeManager(_committeeManager);
+        verifierManager = IVerifierManager(_verifierManager);
     }
 
     // Calculate the current day and use it for the daily limit.
@@ -156,8 +181,8 @@ contract ActivityVerification is ReentrancyGuard {
         t.status = TaskStatus.Pending;
         t.timestamp = block.timestamp;
 
-        // Set a 12-hour voting deadline
-        t.voteDeadline = block.timestamp + voteDeadlineDuration;
+        //Voting deadline = cooldown + vote window = 24+12 =36 h 
+        t.voteDeadline = block.timestamp + taskCooldown + voteDeadlineDuration;
 
         userDailySubmissions[msg.sender][dayKey]++;
         dailyTaskCount[dayKey]++;
@@ -169,8 +194,9 @@ contract ActivityVerification is ReentrancyGuard {
         emit VerifiersAssigned(taskId, t.verifiers);
     }
 
-    // Committee members call this to approve or reject a task
-    function voteOnTask(uint256 _taskId, bool _approve) external onlyCommittee nonReentrant {
+    // Assigned verifiers call this to approve or reject a task
+    // No onlyCommittee — access is controlled solely by _isAssignedVerifier()
+    function voteOnTask(uint256 _taskId, bool _approve) external nonReentrant {
         // Ensure the task exists
         if (_taskId >= taskCount) revert TaskNotFound();
         
@@ -183,6 +209,9 @@ contract ActivityVerification is ReentrancyGuard {
         if (t.status != TaskStatus.Pending) revert TaskNotPending();
         if (hasVoted[_taskId][msg.sender]) revert AlreadyVoted();
 
+        //Enforce 24h cooldown before voting is allowed
+        if (block.timestamp < t.timestamp + taskCooldown) revert TaskInCooldown();
+        
         // Only assigned verifiers may vote
         if (!_isAssignedVerifier(t, msg.sender)) revert NotAssignedVerifier();
 
@@ -200,19 +229,17 @@ contract ActivityVerification is ReentrancyGuard {
 
         emit VoteCast(_taskId, msg.sender, _approve);
 
-        // Get approval threshold from CommitteeManager
-        uint256 threshold = committeeManager.approvalThreshold();
-        
-        // Once the threshold is reached or all three verifiers have cast their votes,
-        // the system proceeds to a unified settlement
+        // Fixed threshold for 3-verifier model
+        // Verifiers are now a separate pool from committee, so we use a local constant
         if (
-            t.approvals >= threshold ||
-            t.rejections > (committeeManager.getMemberCount() - threshold) ||
+            t.approvals >= APPROVAL_THRESHOLD ||
+            t.rejections > (3 - APPROVAL_THRESHOLD) ||
             _allVerifiersVoted(t, _taskId)
         ) {
-            _finalizeTask(_taskId, threshold);
+            _finalizeTask(_taskId);
         }
     }
+
 
     // After the voting period expires, anyone can trigger the settlement process
     function finalizeExpiredTask(uint256 _taskId) external nonReentrant {
@@ -222,9 +249,57 @@ contract ActivityVerification is ReentrancyGuard {
         if (t.status != TaskStatus.Pending) revert TaskNotPending();
         require(block.timestamp > t.voteDeadline, "Deadline not reached");
 
-        uint256 threshold = committeeManager.approvalThreshold();
-        _finalizeTask(_taskId, threshold);
+        _finalizeTask(_taskId);
     }
+
+    // Committee member votes in place of a verifier who failed to vote
+    function committeeReplaceVote(
+        uint256 _taskId,
+        uint256 _verifierSlot,
+        bool _approve
+    ) external nonReentrant {
+        if (_taskId >= taskCount) revert TaskNotFound();
+        Task storage t = tasks[_taskId];
+        if (t.status != TaskStatus.Pending) revert TaskNotPending();
+
+        // Only committee members
+        if (!committeeManager.isCommitteeMember(msg.sender)) revert NotCommitteeMember();
+
+        // Must be past vote deadline (committee steps in after verifier fails)
+        require(block.timestamp > t.voteDeadline, "Deadline not reached");
+
+        // Validate verifier slot
+        if (_verifierSlot >= t.verifierCount) revert InvalidVerifierSlot();
+        address absentVerifier = t.verifiers[_verifierSlot];
+
+        // Absent verifier must NOT have voted
+        if (hasVoted[_taskId][absentVerifier]) revert VerifierAlreadyVoted();
+
+        // Mark as voted (so _allVerifiersVoted works) + mark as replaced (for penalty logic)
+        hasVoted[_taskId][absentVerifier] = true;
+        wasReplaced[_taskId][absentVerifier] = true;
+        voteChoice[_taskId][absentVerifier] = _approve;
+
+        if (_approve) {
+            t.approvals++;
+        } else {
+            t.rejections++;
+        }
+
+        emit CommitteeReplacedVote(_taskId, msg.sender, absentVerifier, _approve);
+
+        // Check if threshold reached
+        if (
+            t.approvals >= APPROVAL_THRESHOLD ||
+            t.rejections > (3 - APPROVAL_THRESHOLD) ||
+            _allVerifiersVoted(t, _taskId)
+        ) {
+            _finalizeTask(_taskId);
+        }
+    }
+
+
+
 
     // If the daily GT quota is full, you can still claim the waiting-list reward later
     function claimQueuedGT(uint256 _taskId) external nonReentrant {
@@ -245,37 +320,48 @@ contract ActivityVerification is ReentrancyGuard {
         emit QueuedGTClaimed(_taskId, msg.sender, t.gtReward);
     }
 
+    // try to burn verifier's GT
+    function _burnVerifierGT(address _verifier, uint256 _amount) internal{
+
+        // Slash stake first
+        uint256 deductedFromStake = verifierManager.slashFromStake(_verifier, _amount);
+        
+        // Calculate GT 
+        uint256 remaining = _amount - deductedFromStake;
+
+        // Slash GT
+        if (remaining > 0) { greenToken.slash(_verifier, remaining); }
+    }
+
     // Get the verifier assigned to a specific task
-    function getTaskVerifiers(uint256 _taskId) external view returns (address[3] memory) {
+    function getTaskVerifiers(uint256 _taskId) external view returns (address[3] memory) { 
         if (_taskId >= taskCount) revert TaskNotFound();
         return tasks[_taskId].verifiers;
     }
 
     // Internal settlement function
-    function _finalizeTask(uint256 _taskId, uint256 threshold) internal {
-        Task storage t = tasks[_taskId];
+    function _finalizeTask(uint256 _taskId) internal {
 
-        if (t.approvals >= threshold) {
+        Task storage t = tasks[_taskId];
+        bool approved = t.approvals >= APPROVAL_THRESHOLD;
+
+        if (approved) {
             // Task Approved: Update status and mint GreenTokens to student
             t.status = TaskStatus.Approved;
-
-            // First, check if the dailyMintCap has been exceeded
             _mintOrQueueGT(t);
-
-            // Settle rewards and penalties after verification
-            _settleVerifierRewardsAndPenalties(_taskId, true);
-
-            emit TaskFinalized(_taskId, TaskStatus.Approved);
         } else {
             // Task Rejected: Too many rejections, cannot reach threshold
             t.status = TaskStatus.Rejected;
-
-            // Settle verifier rewards and penalties even after rejection
-            _settleVerifierRewardsAndPenalties(_taskId, false);
-
-            emit TaskFinalized(_taskId, TaskStatus.Rejected);
         }
+        // Settle verifier rewards/penalties and report to VerifierManager
+        _settleVerifierRewardsAndPenalties(_taskId, approved);
+
+        // Advance the global round counter in VerifierManager
+        verifierManager.incrementRound();
+
+        emit TaskFinalized(_taskId, t.status);
     }
+
 
     // If the daily GT quota has not been exceeded, mint immediately; otherwise, join the queue
     function _mintOrQueueGT(Task storage t) internal {
@@ -291,7 +377,7 @@ contract ActivityVerification is ReentrancyGuard {
         }
     }
 
-    // Verifier Rewards And Penalties
+    // Verifier Rewards And Penalties(from stake)
     // Majority: +1 RT
     // Minority: -5 GT
     // Abstained: -2 GT
@@ -300,10 +386,20 @@ contract ActivityVerification is ReentrancyGuard {
 
         for (uint256 i = 0; i < t.verifierCount; i++) {
             address verifier = t.verifiers[i];
+            
+            if (wasReplaced[_taskId][verifier]) {
+                _burnVerifierGT(verifier, inactivityPenalty);
+                verifierManager.reportPerformance(verifier, false);
+                verifierManager.onTaskFinalized(verifier);   // release task lock
+                continue;
+            }
+            
             bool voted = hasVoted[_taskId][verifier];
 
             if (!voted) {
-                greenToken.slash(verifier, inactivityPenalty);
+                _burnVerifierGT(verifier, inactivityPenalty);
+                verifierManager.reportPerformance(verifier, false);
+                verifierManager.onTaskFinalized(verifier); 
                 continue;
             }
 
@@ -312,21 +408,37 @@ contract ActivityVerification is ReentrancyGuard {
 
             if (inMajority) {
                 rewardToken.mint(verifier, verifierReward);
+                verifierManager.reportPerformance(verifier, true);
             } else {
-                greenToken.slash(verifier, verifierPenalty);
+                _burnVerifierGT(verifier, verifierPenalty);
+                verifierManager.reportPerformance(verifier, false);
             }
+
+            verifierManager.onTaskFinalized(verifier);  
+            
         }
     }
 
+    //reads candidates from VerifierManager.getCandidates()
+    //Random verifier selection (was sequential)
+    // use keccak256 generator to assign verifiers in a pseudo-random index
     // Assign 3 verifiers and limit each verifier to a maximum of 8 tasks per day
     function _assignVerifiers(uint256 _taskId) internal {
         Task storage t = tasks[_taskId];
-        address[] memory members = committeeManager.getMembers();
+
+        address[] memory members = verifierManager.getCandidates();
         uint256 dayKey = currentDay();
         uint8 selected = 0;
+        uint256 len = members.length;
 
-        for (uint256 i = 0; i < members.length && selected < 3; i++) {
-            address candidate = members[i];
+        // Generate pseudo-random starting index using block context + taskId
+        uint256 startIndex = uint256(
+            keccak256(abi.encodePacked(block.timestamp, block.prevrandao, _taskId))
+        ) % len;
+
+        for (uint256 i = 0; i < len && selected < 3; i++) {
+            uint256 idx = (startIndex + i) % len; //wrap-around index
+            address candidate = members[idx];
 
             if (candidate == t.submitter) continue;
             if (verifierDailyAssigned[candidate][dayKey] >= verifierTaskLimit) continue;
@@ -334,6 +446,8 @@ contract ActivityVerification is ReentrancyGuard {
             t.verifiers[selected] = candidate;
             verifierDailyAssigned[candidate][dayKey]++;
             selected++;
+
+            verifierManager.onTaskAssigned(candidate);
         }
 
         require(selected == 3, "Need 3 eligible verifiers");

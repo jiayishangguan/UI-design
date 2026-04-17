@@ -2,17 +2,10 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title CommitteeManager
+ * @title CommitteeManager-v3 11/4/2026
  * @author Qi Wu
  * @notice Unified Governance Contract to manage protocol parameters through collective committee approval.
  * @dev Manages a Committee of 3–5 members using a 2/3 multi-sig proposal mechanism.
- *      V2 Improvements:
- *      - Custom errors (gas-efficient, replacing string revert messages)
- *      - Proposal expiration (default 7 days TTL)
- *      - Proposal cancellation (proposer-only)
- *      - Target contract binding (each proposal specifies its target contract)
- *      - consumeProposal() pattern for secure external contract integration
- *      - Enhanced data validation
  */
 
 contract CommitteeManager {
@@ -31,18 +24,27 @@ contract CommitteeManager {
     error OnlyProposerCanCancel();
     error EmptyProposalData();
     error ProposalNotFound();
-    error TargetMismatch();
-    error ProposalNotExecuted();
-    error ProposalAlreadyConsumed();
+    error ExecutionFailed();
 
     // ENUMS
     /// @notice Types of actions that can be proposed
     enum ActionType {
-        ADD_MEMBER,      // Add a new Committee member
-        REMOVE_MEMBER,   // Remove an existing Committee member
-        INJECT_RT,       // Inject Reward Tokens into the AMM pool
-        UPDATE_FEE,      // Update fee parameters
-        UPDATE_REWARD    // Update reward directory
+        //Manage members
+        ADD_MEMBER,      // data = abi.encode(address newMember)
+        REMOVE_MEMBER,   // data = abi.encode(address member)
+        //AMMPool
+        INIT_POOL,          // data = abi.encode(uint256 gtAmount, uint256 rtAmount)
+        INJECT_BUFFER,      // data = abi.encode(uint256 rtAmount)
+        SET_FEE_RECIPIENT,  // RESERVED — kept to preserve enum indices (feeRecipient removed from AMMPool)
+        //Token Management
+        SET_GT_MINTER,      // data = abi.encode(address minter)          → GreenToken.setMinter()
+        SET_RT_MINTER,      // data = abi.encode(address minter)          → RewardToken.setMinter()
+        MINT_RT,            // data = abi.encode(address to, uint256 amt) → RewardToken.mint()
+        //Reward Management
+        ADD_REWARD,         // data = abi.encode(string name, uint256 baseCost) → RewardRedemption.addReward()
+        REMOVE_REWARD,      // data = abi.encode(uint256 rewardId)              → RewardRedemption.removeReward()
+        //For future expansion:
+        GENERIC_CALL        // data = abi.encode(bytes callData) → target.call(callData)
     }
 
     /// @notice Proposal status
@@ -63,7 +65,6 @@ contract CommitteeManager {
         uint256      approvalCount; // Current number of approvals
         ProposalStatus status;      // Lifecycle state
         uint256      createdAt;     // Block timestamp when created
-        bool consumed;     // Prevents replay — each proposal consumed at most once
         mapping(address => bool) hasApproved; // Per-member vote record
     }
 
@@ -79,7 +80,7 @@ contract CommitteeManager {
     uint256 public approvalThreshold;
 
     /// @notice Time-to-live for proposals in seconds (default 7 days)
-    uint256 public PROPOSAL_TTL = 7 days;
+    uint256 public constant PROPOSAL_TTL = 7 days;
 
     // Events - for transparency and frontend tracking
     event MemberAdded(address indexed member);
@@ -99,7 +100,6 @@ contract CommitteeManager {
 
     event ProposalExecuted(uint256 indexed proposalId, ActionType actionType);
     event ProposalCancelled(uint256 indexed proposalId, address indexed canceller);
-    event ProposalConsumed(uint256 indexed proposalId, address indexed consumer);
     
     // Modifiers
     modifier onlyCommittee() {
@@ -162,7 +162,6 @@ contract CommitteeManager {
         p.approvalCount = 0;
         p.status = ProposalStatus.Pending;
         p.createdAt = block.timestamp;
-        p.consumed = false;
 
         emit ProposalCreated(proposalId, _actionType, msg.sender, _targetContract);
     }
@@ -216,25 +215,74 @@ contract CommitteeManager {
 
     /**
      * @dev Internal logic to finalize a passed proposal
-     *      Handles member management directly. Other types are flagged as 'Executed'
-     *      so external contracts can trigger their specific logic using isProposalExecuted().
      */
     function _executeProposal(uint256 _proposalId) internal {
         Proposal storage p = proposals[_proposalId];
         p.status = ProposalStatus.Executed;
 
+        ActionType action = p.actionType;
+
+        // Member management actions are executed immediately within this contract
         if (p.actionType == ActionType.ADD_MEMBER) {
             address newMember = abi.decode(p.data, (address));
             _addMember(newMember);
-            p.consumed = true;
+
         } else if (p.actionType == ActionType.REMOVE_MEMBER) {
             address target = abi.decode(p.data, (address));
             _removeMember(target);
-            p.consumed = true;
-        }
-        // External actions: wait for consumeProposal()
 
-        emit ProposalExecuted(_proposalId, p.actionType);
+        }
+        
+        // AMMPool actions require external contract calls
+        else if (action == ActionType.INIT_POOL) {
+            (uint256 gtAmt, uint256 rtAmt) = abi.decode(p.data, (uint256, uint256));
+            _call(p.targetContract, abi.encodeWithSignature("initialize(uint256,uint256)", gtAmt, rtAmt));
+        }
+
+        else if (action == ActionType.INJECT_BUFFER) {
+            uint256 amount = abi.decode(p.data, (uint256));
+            _call(p.targetContract, abi.encodeWithSignature("BufferRTAction(uint256)", amount));
+        }
+
+        // Token actions
+        else if (action == ActionType.SET_GT_MINTER) {
+            address minter = abi.decode(p.data, (address));
+            _call(p.targetContract, abi.encodeWithSignature("setMinter(address)", minter));
+        }
+        else if (action == ActionType.SET_RT_MINTER) {
+            address minter = abi.decode(p.data, (address));
+            _call(p.targetContract, abi.encodeWithSignature("setMinter(address)", minter));
+        }
+        else if (action == ActionType.MINT_RT) {
+            (address to, uint256 amt) = abi.decode(p.data, (address, uint256));
+            _call(p.targetContract, abi.encodeWithSignature("mint(address,uint256)", to, amt));
+        }
+
+        // Reward actions
+        else if (action == ActionType.ADD_REWARD) {
+            (string memory name, uint256 baseCost) = abi.decode(p.data, (string, uint256));
+            _call(p.targetContract, abi.encodeWithSignature("addReward(string,uint256)", name, baseCost));
+        }
+        else if (action == ActionType.REMOVE_REWARD) {
+            uint256 rewardId = abi.decode(p.data, (uint256));
+            _call(p.targetContract, abi.encodeWithSignature("removeReward(uint256)", rewardId));
+        }
+
+        // generic call fallback for future expansion
+        else if (action == ActionType.GENERIC_CALL) {
+            bytes memory callData = abi.decode(p.data, (bytes));
+            _call(p.targetContract, callData);
+        }
+
+        emit ProposalExecuted(_proposalId, action);
+    }
+
+    /**
+     * @dev low-level call, revert if it fails. 
+     */
+    function _call(address target, bytes memory callData) internal {
+        (bool success, ) = target.call(callData);
+        if (!success) revert ExecutionFailed();
     }
 
     /**
@@ -276,49 +324,8 @@ contract CommitteeManager {
         emit MemberRemoved(_member);
     }
 
-    //External Contract Integration
-    /**
-     * @notice Called by external contracts to consume an executed proposal.
-     * @param _proposalId The proposal to consume
-     * @return actionType The action type
-     * @return data The ABI-encoded data
-     * @dev Security:
-     *      1. Only targetContract (msg.sender) can consume
-     *      2. Must be Executed status
-     *      3. Single-use (consumed flag prevents replay)
-     */
-
-     function consumeProposal(uint256 _proposalId)
-        external
-        returns (ActionType actionType, bytes memory data)
-    {
-        if (_proposalId >= proposalCount) revert ProposalNotFound();
-
-        Proposal storage p = proposals[_proposalId];
-
-        if (p.status != ProposalStatus.Executed) revert ProposalNotExecuted();
-        if (p.targetContract != msg.sender) revert TargetMismatch();
-        if (p.consumed) revert ProposalAlreadyConsumed();
-
-        p.consumed = true;
-
-        emit ProposalConsumed(_proposalId, msg.sender);
-
-        return (p.actionType, p.data);
-    }
-
 
     // View Functions
-
-    /**
-     * @notice Checks if a specific proposal has been officially approved and finalized
-     * @param _proposalId The ID of the proposal
-     * @return True if the proposal state is Executed
-     */
-    function isProposalExecuted(uint256 _proposalId) external view returns (bool) {
-        return proposals[_proposalId].status == ProposalStatus.Executed;
-    }
-
     /**
      * @notice Gets the effective status of a proposal, accounting for expiration
      * @param _proposalId The ID of the proposal
@@ -353,14 +360,13 @@ contract CommitteeManager {
             address proposer,
             uint256 approvalCount,
             ProposalStatus status,
-            uint256 createdAt,
-            bool consumed
+            uint256 createdAt
         )
     {
         if (_proposalId >= proposalCount) revert ProposalNotFound();
         Proposal storage p = proposals[_proposalId];
-        ProposalStatus effectiveStatus = getEffectiveStatus(_proposalId);
-        return (p.actionType, p.targetContract, p.proposer, p.approvalCount, effectiveStatus, p.createdAt, p.consumed);
+
+        return (p.actionType, p.targetContract, p.proposer, p.approvalCount, getEffectiveStatus(_proposalId), p.createdAt);
     }
 
     /**

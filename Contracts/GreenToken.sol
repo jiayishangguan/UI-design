@@ -31,7 +31,7 @@ contract GreenToken is ERC20 {
     }
 
     modifier onlyCommittee() {
-        require(committee.isCommitteeMember(msg.sender), "Not committee");
+        require(msg.sender == address(committee), "Not committee");
         _;
     }
 
@@ -78,6 +78,22 @@ contract GreenToken is ERC20 {
 
         emit Slashed(user, amount, actualAmount);
     }
+
+
+    // Let the caller burn its own GT.
+    function burn(uint256 amount) external returns (uint256 actualAmount) { 
+        require(amount > 0, "Amount must be > 0"); // Do not allow zero burn.
+
+        uint256 bal = balanceOf(msg.sender); // Check the caller's current GT balance.
+        actualAmount = bal < amount ? bal : amount; // Burn the smaller one: balance or asked amount.
+
+        if (actualAmount > 0) { // Only burn when there is something to burn.
+            _burn(msg.sender, actualAmount); // Burn GT from the caller's own address.
+        }
+    }
+
+
+
 
     // Return user tier based on cumulative minted GT
     // 0 = None, 1 = Bronze, 2 = Silver, 3 = Gold

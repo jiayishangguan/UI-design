@@ -11,7 +11,7 @@ interface IRewardToken {
 }
 
 interface IAMMPool {
-    function targetRT() external view returns (uint256);
+    function TARGET_RT() external view returns (uint256);
     function getReserves() external view returns (uint256 gt, uint256 rt, uint256 currentK);
 }
 
@@ -48,7 +48,7 @@ contract RewardRedemption is ReentrancyGuard {
 
     // Modifier to check if caller is a committee member
     modifier onlyCommittee() {
-        if (!committeeManager.isCommitteeMember(msg.sender)) revert NotCommitteeMember();
+        if (msg.sender != address(committeeManager)) revert NotCommitteeMember();
         _;
     }
 
@@ -79,7 +79,7 @@ contract RewardRedemption is ReentrancyGuard {
         Reward storage r = rewards[_id];
         if (!r.active) revert RewardNotActive();
 
-        uint256 target = ammPool.targetRT();
+        uint256 target = ammPool.TARGET_RT();
         (, uint256 current, ) = ammPool.getReserves();
         
         // Prevent division by zero
