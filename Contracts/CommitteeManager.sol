@@ -39,12 +39,14 @@ contract CommitteeManager {
         //Token Management
         SET_GT_MINTER,      // data = abi.encode(address minter)          → GreenToken.setMinter()
         SET_RT_MINTER,      // data = abi.encode(address minter)          → RewardToken.setMinter()
-        MINT_RT,            // data = abi.encode(address to, uint256 amt) → RewardToken.mint()
+        MINT_RT,            // data = abi.encode(address to, uint256 amt) → RewardToken.mint()  
         //Reward Management
         ADD_REWARD,         // data = abi.encode(string name, uint256 baseCost) → RewardRedemption.addReward()
         REMOVE_REWARD,      // data = abi.encode(uint256 rewardId)              → RewardRedemption.removeReward()
         //For future expansion:
-        GENERIC_CALL        // data = abi.encode(bytes callData) → target.call(callData)
+        GENERIC_CALL,       // data = abi.encode(bytes callData) → target.call(callData) 
+        MINT_GT
+
     }
 
     /// @notice Proposal status
@@ -254,6 +256,11 @@ contract CommitteeManager {
             _call(p.targetContract, abi.encodeWithSignature("setMinter(address)", minter));
         }
         else if (action == ActionType.MINT_RT) {
+            (address to, uint256 amt) = abi.decode(p.data, (address, uint256));
+            _call(p.targetContract, abi.encodeWithSignature("mint(address,uint256)", to, amt));
+        }
+
+        else if (action == ActionType.MINT_GT) {
             (address to, uint256 amt) = abi.decode(p.data, (address, uint256));
             _call(p.targetContract, abi.encodeWithSignature("mint(address,uint256)", to, amt));
         }
