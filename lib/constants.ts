@@ -17,13 +17,31 @@ export const GOVERNANCE_PHASE_DETAILS = [
   "Phase 3 uses only the verifier pool for activity review."
 ] as const;
 export const PROPOSAL_STATUS_LABELS = ["Pending", "Executed", "Cancelled", "Expired"] as const;
-export const LEVEL_LABELS = ["Seed", "Bronze", "Silver", "Gold"] as const;
+export const LEVEL_LABELS = ["Bronze", "Silver", "Gold"] as const;
 export const LEVEL_DESCRIPTIONS = [
-  "Connected wallet with no verified mint history yet.",
   "Early sustainability contributor with 50+ lifetime GT minted.",
   "Established campus contributor with 200+ lifetime GT minted.",
   "Top tier sustainability leader with 500+ lifetime GT minted."
 ] as const;
+
+export function getLevelMeta(tier: number) {
+  if (tier <= 0) {
+    return {
+      numericLevel: 1,
+      levelName: "Bronze",
+      shortLabel: "Level 1 · Bronze",
+      description: "Default entry level for connected members before higher on-chain milestones are reached."
+    };
+  }
+
+  const safeIndex = Math.min(Math.max(tier - 1, 0), LEVEL_LABELS.length - 1);
+  return {
+    numericLevel: tier,
+    levelName: LEVEL_LABELS[safeIndex],
+    shortLabel: `Level ${tier} · ${LEVEL_LABELS[safeIndex]}`,
+    description: LEVEL_DESCRIPTIONS[safeIndex]
+  };
+}
 
 export const ACTION_TYPE_OPTIONS = [
   { value: 0, label: "ADD_MEMBER" },

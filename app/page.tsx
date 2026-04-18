@@ -10,7 +10,7 @@ import { ProfileGateDialog } from "@/components/profile/profile-gate-dialog";
 import { useAppWallet } from "@/hooks/use-app-wallet";
 import { useDashboardReads } from "@/hooks/use-contract-reads";
 import { useProfile } from "@/hooks/use-profile";
-import { LEVEL_DESCRIPTIONS, LEVEL_LABELS } from "@/lib/constants";
+import { getLevelMeta } from "@/lib/constants";
 import { formatToken } from "@/lib/format";
 import { getTasksBySubmitter } from "@/lib/supabase/queries";
 import type { TaskRecord } from "@/types/database";
@@ -47,12 +47,11 @@ export default function HomePage() {
   const tier = Number(dashboardReads.data?.[0]?.result ?? 0);
   const totalMinted = (dashboardReads.data?.[1]?.result as bigint | undefined) ?? 0n;
   const phase = Number(dashboardReads.data?.[2]?.result ?? 0);
-  const levelLabel = `Level ${tier} · ${LEVEL_LABELS[tier] ?? LEVEL_LABELS[0]}`;
-  const levelDescription = LEVEL_DESCRIPTIONS[tier] ?? LEVEL_DESCRIPTIONS[0];
+  const levelMeta = getLevelMeta(tier);
 
   return (
     <div className="space-y-8">
-      <Hero levelLabel={levelLabel} />
+      <Hero levelLabel={levelMeta.shortLabel} />
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr_0.9fr]">
         <StatCard
           label="Green Token"
@@ -70,9 +69,9 @@ export default function HomePage() {
           <p className="text-sm text-white/55">Identity snapshot</p>
           <p className="mt-6 font-serif text-3xl text-white">{profile?.full_name ?? "Guest"}</p>
           <p className="mt-3 text-sm text-white/55">
-            {levelLabel} · Total minted {formatToken(totalMinted)} GT · Verifier phase {phase + 1}
+            {levelMeta.shortLabel} · Total minted {formatToken(totalMinted)} GT · Verifier phase {phase + 1}
           </p>
-          <p className="mt-6 text-sm leading-6 text-white/45">{levelDescription}</p>
+          <p className="mt-6 text-sm leading-6 text-white/45">{levelMeta.description}</p>
         </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">

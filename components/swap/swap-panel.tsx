@@ -10,7 +10,6 @@ import { formatToken } from "@/lib/format";
 const TARGET_RT = 3000n;
 
 export function SwapPanel({
-  reserves,
   poolStatus,
   remainingDailyGt,
   immediateLimit,
@@ -36,6 +35,7 @@ export function SwapPanel({
   const [amountIn, setAmountIn] = useState("");
   const [minOut, setMinOut] = useState("0");
   const [busy, setBusy] = useState<string | null>(null);
+
   const bufferRt = poolStatus?.[2] ?? 0n;
   const actualGt = actualPoolGt ?? 0n;
   const actualRt = actualPoolRt ?? 0n;
@@ -49,8 +49,8 @@ export function SwapPanel({
   return (
     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
       <Card className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -left-14 top-6 h-40 w-40 rounded-full bg-emerald-300/10 blur-3xl animate-pulse-soft" />
-        <div className="pointer-events-none absolute bottom-0 right-0 h-36 w-36 rounded-full bg-sky-300/10 blur-3xl animate-float" />
+        <div className="glass-orb animate-drift -left-8 top-10 h-32 w-32" />
+        <div className="glass-orb animate-pulse-soft bottom-6 right-10 h-24 w-24" />
         <div className="flex gap-2">
           <Button variant={direction === "GT_TO_RT" ? "primary" : "secondary"} onClick={() => setDirection("GT_TO_RT")}>
             GT to RT
@@ -105,6 +105,7 @@ export function SwapPanel({
           </Button>
         </div>
       </Card>
+
       <div className="space-y-6">
         <Card className="relative overflow-hidden">
           <div className="pointer-events-none absolute -top-10 right-0 h-28 w-28 rounded-full bg-emerald-400/10 blur-2xl" />
@@ -112,8 +113,8 @@ export function SwapPanel({
             <div>
               <h2 className="font-serif text-2xl text-white">Buffer Pool</h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-white/55">
-                The buffer pool is an RT-only support layer. It sits beside the live AMM trading pool and holds reserve
-                support liquidity that governance can inject when the RT side needs reinforcement.
+                The buffer pool is an RT-only support layer. It sits beside the live AMM trading pool and stores
+                supporting RT liquidity that governance can inject when the RT side needs reinforcement.
               </p>
             </div>
             <div className="rounded-full border border-emerald-300/15 bg-emerald-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-emerald-100/80">
@@ -125,25 +126,26 @@ export function SwapPanel({
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">Buffer RT</p>
               <p className="mt-3 font-serif text-4xl text-white">{formatToken(bufferRt)}</p>
               <p className="mt-3 text-sm leading-6 text-white/45">
-                This RT is held outside the live AMM trading side and acts as a reserve-support cushion.
+                This RT is held outside the live AMM trading side and works as a reserve-support cushion.
               </p>
             </div>
             <div className="grid gap-3">
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-white/40">What it does</p>
                 <p className="mt-2 text-sm leading-6 text-white/65">
-                  Helps reinforce the RT side without changing the visible AMM trading balances directly.
+                  Supports the RT side without replacing the live AMM pool balances shown below.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-white/40">When it changes</p>
                 <p className="mt-2 text-sm leading-6 text-white/65">
-                  Governance injection and the reserve-support flow can move this number up or down.
+                  Governance injection and reserve-support operations can move this number up or down.
                 </p>
               </div>
             </div>
           </div>
         </Card>
+
         <Card className="relative overflow-hidden">
           <div className="pointer-events-none absolute left-0 top-0 h-24 w-24 rounded-full bg-sky-300/10 blur-2xl" />
           <div className="pointer-events-none absolute bottom-0 right-10 h-20 w-20 rounded-full bg-emerald-300/10 blur-2xl" />
@@ -151,7 +153,7 @@ export function SwapPanel({
             <div>
               <h2 className="font-serif text-2xl text-white">AMM Pool</h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-white/55">
-                This is the live trading pool view. It shows the GT and RT side visible to swaps and the fee that updates
+                This is the live trading pool view. It shows the GT and RT visible to swaps and the fee that updates
                 from the current RT state.
               </p>
             </div>
@@ -183,6 +185,7 @@ export function SwapPanel({
             </div>
           </div>
         </Card>
+
         <Card>
           <h2 className="font-serif text-2xl text-white">GT Limits</h2>
           <div className="mt-5 space-y-3 text-sm text-white/65">
@@ -196,6 +199,7 @@ export function SwapPanel({
             </div>
           </div>
         </Card>
+
         <Card>
           <h2 className="font-serif text-2xl text-white">RT Reserve Rules</h2>
           <div className="mt-5 space-y-2 text-sm text-white/65">
