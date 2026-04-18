@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 import { APP_NAME } from "@/lib/constants";
+import { formatAddress } from "@/lib/format";
 
 const links = [
   { href: "/", label: "Dashboard" },
@@ -16,6 +17,12 @@ const links = [
 ];
 
 export function TopNav() {
+  const { address, isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  const metaMaskConnector = connectors[0];
+
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-black/20 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
@@ -35,7 +42,33 @@ export function TopNav() {
             </Link>
           ))}
         </nav>
-        <ConnectButton showBalance={false} />
+        <div className="flex items-center gap-3">
+          {isConnected ? (
+            <>
+              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
+                {formatAddress(address)}
+              </div>
+              <button
+                type="button"
+                onClick={() => disconnect()}
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 transition hover:border-white/20 hover:text-white"
+              >
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (metaMaskConnector) connect({ connector: metaMaskConnector });
+              }}
+              disabled={!metaMaskConnector || isPending}
+              className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-5 py-2 text-sm font-medium text-emerald-50 shadow-[0_0_30px_rgba(120,200,140,0.18)] transition hover:border-emerald-200/40 hover:bg-emerald-200/15 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isPending ? "Connecting MetaMask..." : "Connect MetaMask"}
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
