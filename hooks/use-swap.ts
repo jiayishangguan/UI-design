@@ -17,6 +17,11 @@ export function useSwap(address?: `0x${string}`) {
       {
         address: contractAddresses.AMMPool as `0x${string}`,
         abi: abis.AMMPool,
+        functionName: "getPoolStatus"
+      },
+      {
+        address: contractAddresses.AMMPool as `0x${string}`,
+        abi: abis.AMMPool,
         functionName: "getReserves"
       },
       {
@@ -35,6 +40,18 @@ export function useSwap(address?: `0x${string}`) {
         abi: abis.AMMPool,
         functionName: "getCurrentImmediateLimit",
         args: address ? [address] : undefined
+      },
+      {
+        address: contractAddresses.GreenToken as `0x${string}`,
+        abi: abis.GreenToken,
+        functionName: "balanceOf",
+        args: [contractAddresses.AMMPool as `0x${string}`]
+      },
+      {
+        address: contractAddresses.RewardToken as `0x${string}`,
+        abi: abis.RewardToken,
+        functionName: "balanceOf",
+        args: [contractAddresses.AMMPool as `0x${string}`]
       }
     ]
   });

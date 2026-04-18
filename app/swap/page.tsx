@@ -10,10 +10,15 @@ export default function SwapPage() {
 
   return (
     <SwapPanel
-      feeRate={swap.data?.[1]?.result as bigint | undefined}
-      reserves={swap.data?.[0]?.result as readonly [bigint, bigint, bigint] | undefined}
-      remainingDailyGt={swap.data?.[2]?.result as bigint | undefined}
-      immediateLimit={swap.data?.[3]?.result as bigint | undefined}
+      feeRate={swap.data?.[2]?.result as bigint | undefined}
+      reserves={swap.data?.[1]?.result as readonly [bigint, bigint, bigint] | undefined}
+      poolStatus={swap.data?.[0]?.result as readonly [bigint, bigint, bigint, bigint, bigint] | undefined}
+      remainingDailyGt={swap.data?.[3]?.result as bigint | undefined}
+      immediateLimit={swap.data?.[4]?.result as bigint | undefined}
+      actualPoolGt={swap.data?.[5]?.result as bigint | undefined}
+      actualPoolRt={swap.data?.[6]?.result as bigint | undefined}
+      walletGt={wallet.gtBalance.data?.value}
+      walletRt={wallet.rtBalance.data?.value}
       onApprove={swap.approveToken}
       onSwap={swap.swap}
     />
