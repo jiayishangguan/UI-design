@@ -116,17 +116,13 @@ export function SwapPanel({
         <Card>
           <h2 className="font-serif text-2xl text-white">Reserve Side</h2>
           <p className="mt-3 text-sm leading-6 text-white/55">
-            This section focuses on reserve-side RT tracking only. It is separate from the live trading state of the
-            AMM pool.
+            This section shows the single reserve-side RT value only. It is separate from the live trading state of the
+            AMM pool and does not include GT.
           </p>
           <div className="mt-5 space-y-3 text-sm text-white/65">
             <div className="flex justify-between">
               <span>Reserve RT</span>
               <span>{formatToken(reserveRt)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Buffer RT</span>
-              <span>{formatToken(bufferRt)}</span>
             </div>
             <div className="flex justify-between">
               <span>Last inject</span>
@@ -148,6 +144,10 @@ export function SwapPanel({
             <div className="flex justify-between">
               <span>Actual RT in AMM contract</span>
               <span>{formatToken(actualRt)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Buffer RT</span>
+              <span>{formatToken(bufferRt)}</span>
             </div>
             <div className="flex justify-between">
               <span>Current GT ledger used by AMM</span>
