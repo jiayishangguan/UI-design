@@ -137,7 +137,10 @@ export function GovernancePanel({
             <div key={proposal.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-white">Proposal #{proposal.id}</p>
-                <Badge>{ACTION_TYPE_OPTIONS.find((item) => item.value === proposal.actionType)?.label ?? proposal.actionType}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge>{ACTION_TYPE_OPTIONS.find((item) => item.value === proposal.actionType)?.label ?? proposal.actionType}</Badge>
+                  {proposal.validTarget === false ? <Badge tone="danger">Target mismatch</Badge> : null}
+                </div>
               </div>
               <div className="mt-4 space-y-2 text-sm text-white/60">
                 <p>Target: {formatAddress(proposal.targetContract)}</p>
@@ -146,11 +149,14 @@ export function GovernancePanel({
                 <p>Current status: {proposal.effectiveStatus === 0 ? "Pending" : proposal.effectiveStatus === 1 ? "Executed" : proposal.effectiveStatus === 2 ? "Cancelled" : "Expired"}</p>
                 <p>Created: {formatDateTime(Number(proposal.createdAt) * 1000)}</p>
               </div>
+              {proposal.validTarget === false && proposal.executionHint ? (
+                <p className="mt-3 text-sm leading-6 text-red-200">{proposal.executionHint}</p>
+              ) : null}
               {proposal.hasApproved ? <p className="mt-3 text-sm text-emerald-200/80">This wallet has already approved this proposal.</p> : null}
               <div className="mt-4 flex gap-3">
                 <Button
                   variant="secondary"
-                  disabled={!isCommitteeMember || proposal.effectiveStatus !== 0 || proposal.hasApproved}
+                  disabled={!isCommitteeMember || proposal.effectiveStatus !== 0 || proposal.hasApproved || proposal.validTarget === false}
                   onClick={() => {
                     void onApprove(proposal.id);
                   }}

@@ -31,6 +31,8 @@ export type GovernanceProposal = {
   status: number;
   effectiveStatus?: number;
   hasApproved?: boolean;
+  validTarget?: boolean;
+  executionHint?: string;
   createdAt: bigint;
 };
 

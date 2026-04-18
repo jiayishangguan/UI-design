@@ -8,7 +8,7 @@ import type { GovernanceProposal } from "@/types/contracts";
 import { getReadableContractError } from "@/lib/errors";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
-import { encodeProposalData } from "@/lib/proposal-encoder";
+import { encodeProposalData, getGovernanceExecutionHint, isActionTargetValid } from "@/lib/proposal-encoder";
 
 export function useGovernance(address?: `0x${string}`) {
   const [pending, setPending] = useState(false);
@@ -102,6 +102,8 @@ export function useGovernance(address?: `0x${string}`) {
           status: Number(status),
           effectiveStatus: Number(effectiveStatusEntry?.result ?? status),
           hasApproved: Boolean(hasApprovedEntry?.result ?? false),
+          validTarget: isActionTargetValid(Number(actionType), targetContract as `0x${string}`),
+          executionHint: getGovernanceExecutionHint(Number(actionType), targetContract),
           createdAt
         });
       }
@@ -124,6 +126,9 @@ export function useGovernance(address?: `0x${string}`) {
     setPending(true);
     setActionError(null);
     try {
+      if (!isActionTargetValid(input.actionType, input.targetContract)) {
+        throw new Error(getGovernanceExecutionHint(input.actionType, input.targetContract));
+      }
       const data = encodeProposalData(input.actionType, input.params);
       const simulation = await publicClient.simulateContract({
         account: address,
@@ -157,7 +162,11 @@ export function useGovernance(address?: `0x${string}`) {
       const hash = await writeContractAsync(simulation.request);
       return publicClient.waitForTransactionReceipt({ hash });
     } catch (error) {
-      const readable = getReadableContractError(error, "The approval could not be submitted.");
+      const proposal = proposals.find((item) => item.id === id);
+      const fallback = proposal?.executionHint
+        ? `The approval could not be submitted. ${proposal.executionHint}`
+        : "The approval could not be submitted.";
+      const readable = getReadableContractError(error, fallback);
       setActionError(readable);
       return null;
     }

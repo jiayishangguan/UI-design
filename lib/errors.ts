@@ -76,6 +76,10 @@ export function getReadableContractError(error: unknown, fallback = "Transaction
     return "This wallet is not recognized as a committee member on-chain.";
   }
 
+  if (/ExecutionFailed/i.test(readable)) {
+    return "The proposal reached the execution step, but the target contract call reverted. Check the proposal target contract, argument format, and any on-chain preconditions for that action.";
+  }
+
   if (/user rejected|rejected the request|denied transaction/i.test(readable)) {
     return "The wallet request was rejected before submission.";
   }
