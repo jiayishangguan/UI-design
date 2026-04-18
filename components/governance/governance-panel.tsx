@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { GovernanceProposal } from "@/types/contracts";
 
@@ -40,9 +40,48 @@ export function GovernancePanel({
     const action = Number(actionType);
     if ([2, 3].includes(action)) return contractAddresses.AMMPool as `0x${string}`;
     if ([8, 9].includes(action)) return contractAddresses.RewardRedemption as `0x${string}`;
-    if ([5].includes(action)) return contractAddresses.GreenToken as `0x${string}`;
+    if ([5, 11].includes(action)) return contractAddresses.GreenToken as `0x${string}`;
     if ([6, 7].includes(action)) return contractAddresses.RewardToken as `0x${string}`;
     return "0x0000000000000000000000000000000000000000";
+  }, [actionType]);
+
+  useEffect(() => {
+    const action = Number(actionType);
+    if (action === 8) {
+      setJson('{"name":"Coffee Voucher","baseCost":"20"}');
+      return;
+    }
+    if (action === 11 || action === 7) {
+      setJson('{"to":"0x0000000000000000000000000000000000000000","amount":"10"}');
+      return;
+    }
+    if ([0, 1, 5, 6].includes(action)) {
+      setJson('{"address":"0x0000000000000000000000000000000000000000"}');
+      return;
+    }
+    if (action === 2) {
+      setJson('{"gtAmount":"100","rtAmount":"100"}');
+      return;
+    }
+    if (action === 3) {
+      setJson('{"amount":"100"}');
+      return;
+    }
+    if (action === 9) {
+      setJson('{"rewardId":"0"}');
+      return;
+    }
+    if (action === 10) {
+      setJson('{"callData":"0x"}');
+      return;
+    }
+    if (action === 12) {
+      setJson("{}");
+      return;
+    }
+    if (action === 4) {
+      setJson("{}");
+    }
   }, [actionType]);
 
   return (
@@ -65,7 +104,7 @@ export function GovernancePanel({
           </div>
           <Select value={actionType} onChange={(event) => setActionType(event.target.value)}>
             {ACTION_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
+              <option key={option.value} value={option.value} disabled={Boolean("disabled" in option && option.disabled)}>
                 {option.label}
               </option>
             ))}
@@ -77,7 +116,8 @@ export function GovernancePanel({
             disabled={!isCommitteeMember}
             onClick={() => {
               try {
-                onPropose({ actionType: Number(actionType), targetContract: target, params: JSON.parse(json) });
+                const parsed = Number(actionType) === 12 ? {} : JSON.parse(json);
+                onPropose({ actionType: Number(actionType), targetContract: target, params: parsed });
               } catch {
                 // Handled in hook state and wallet flow.
               }

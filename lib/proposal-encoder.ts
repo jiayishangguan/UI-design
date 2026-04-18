@@ -15,6 +15,7 @@ export function encodeProposalData(actionType: number, params: Record<string, un
     case 3:
       return encodeAbiParameters([{ type: "uint256" }], [BigInt(params.amount as string)]);
     case 7:
+    case 11:
       return encodeAbiParameters(
         [{ type: "address" }, { type: "uint256" }],
         [params.to as `0x${string}`, BigInt(params.amount as string)]
@@ -28,6 +29,10 @@ export function encodeProposalData(actionType: number, params: Record<string, un
       return encodeAbiParameters([{ type: "uint256" }], [BigInt(params.rewardId as string)]);
     case 10:
       return encodeAbiParameters([{ type: "bytes" }], [params.callData as `0x${string}`]);
+    case 12:
+      return "0x";
+    case 4:
+      throw new Error("SET_FEE_RECIPIENT is reserved in the current Solidity contract and cannot be proposed from the UI.");
     default:
       throw new Error(`Unsupported action type ${actionType}`);
   }

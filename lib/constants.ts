@@ -30,10 +30,13 @@ export const ACTION_TYPE_OPTIONS = [
   { value: 1, label: "REMOVE_MEMBER" },
   { value: 2, label: "INIT_POOL" },
   { value: 3, label: "INJECT_BUFFER" },
+  { value: 4, label: "SET_FEE_RECIPIENT (Reserved)", disabled: true },
   { value: 5, label: "SET_GT_MINTER" },
   { value: 6, label: "SET_RT_MINTER" },
   { value: 7, label: "MINT_RT" },
   { value: 8, label: "ADD_REWARD" },
   { value: 9, label: "REMOVE_REWARD" },
-  { value: 10, label: "GENERIC_CALL" }
+  { value: 10, label: "GENERIC_CALL" },
+  { value: 11, label: "MINT_GT" },
+  { value: 12, label: "LOCK_START" }
 ] as const;
