@@ -37,6 +37,8 @@ export default function VerifierPoolPage() {
         phase={Number(verifierPool.data?.[3]?.result ?? 0)}
         verifier={verifierPool.data?.[4]?.result as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean] | undefined}
         activeTaskCount={verifierPool.data?.[5]?.result as bigint | undefined}
+        activeVerifierCount={verifierPool.data?.[6]?.result as bigint | undefined}
+        committeeMembers={verifierPool.data?.[7]?.result as readonly `0x${string}`[] | undefined}
         onApproveStake={verifierPool.approveStake}
         onJoin={verifierPool.join}
         onLeave={verifierPool.leave}

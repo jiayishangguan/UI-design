@@ -44,6 +44,16 @@ export function useVerifierPool(address?: `0x${string}`) {
         abi: abis.VerifierManager,
         functionName: "activeTaskCount",
         args: address ? [address] : undefined
+      },
+      {
+        address: contractAddresses.VerifierManager as `0x${string}`,
+        abi: abis.VerifierManager,
+        functionName: "getActiveVerifierCount"
+      },
+      {
+        address: contractAddresses.CommitteeManager as `0x${string}`,
+        abi: abis.CommitteeManager,
+        functionName: "getMembers"
       }
     ],
     query: { enabled: Boolean(address) }
@@ -57,7 +67,9 @@ export function useVerifierPool(address?: `0x${string}`) {
       functionName: "approve",
       args: [contractAddresses.VerifierManager as `0x${string}`, parseUnits("100", 0)]
     });
-    return publicClient.waitForTransactionReceipt({ hash });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    await reads.refetch();
+    return receipt;
   }
 
   async function join() {
@@ -69,7 +81,9 @@ export function useVerifierPool(address?: `0x${string}`) {
         abi: abis.VerifierManager,
         functionName: "joinVerifierPool"
       });
-      return await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      await reads.refetch();
+      return receipt;
     } finally {
       setPending(false);
     }
@@ -84,7 +98,9 @@ export function useVerifierPool(address?: `0x${string}`) {
         abi: abis.VerifierManager,
         functionName: "leaveVerifierPool"
       });
-      return await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      await reads.refetch();
+      return receipt;
     } finally {
       setPending(false);
     }
