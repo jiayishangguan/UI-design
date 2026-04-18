@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient, http } from "viem";
 import { sepolia } from "viem/chains";
 
-import rewardRedemption from "@/contracts/abis/RewardRedemption.json";
-import deployment from "@/contracts/sepolia.json";
+import rewardRedemption from "@/Contracts/abis/RewardRedemption.json";
+import deployment from "@/Contracts/sepolia.json";
 
 const client = createPublicClient({
   chain: sepolia,

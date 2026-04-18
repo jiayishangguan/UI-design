@@ -1,10 +1,10 @@
-import activityVerification from "@/contracts/abis/ActivityVerification.json";
-import ammPool from "@/contracts/abis/AMMPool.json";
-import committeeManager from "@/contracts/abis/CommitteeManager.json";
-import greenToken from "@/contracts/abis/GreenToken.json";
-import rewardRedemption from "@/contracts/abis/RewardRedemption.json";
-import rewardToken from "@/contracts/abis/RewardToken.json";
-import verifierManager from "@/contracts/abis/VerifierManager.json";
+import activityVerification from "@/Contracts/abis/ActivityVerification.json";
+import ammPool from "@/Contracts/abis/AMMPool.json";
+import committeeManager from "@/Contracts/abis/CommitteeManager.json";
+import greenToken from "@/Contracts/abis/GreenToken.json";
+import rewardRedemption from "@/Contracts/abis/RewardRedemption.json";
+import rewardToken from "@/Contracts/abis/RewardToken.json";
+import verifierManager from "@/Contracts/abis/VerifierManager.json";
 
 export const abis = {
   ActivityVerification: activityVerification.abi,

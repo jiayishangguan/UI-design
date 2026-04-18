@@ -129,8 +129,8 @@ export type ContractName = keyof typeof ABIs;
   log("🎉", `Done! Exported ${exportedCount}/${CONTRACTS.length} contracts.`);
   console.log("");
   console.log("Frontend can now import:");
-  console.log(`  import { ABIs } from '@/contracts/abis';`);
-  console.log(`  import deployment from '@/contracts/sepolia.json';`);
+  console.log(`  import { ABIs } from '@/Contracts/abis';`);
+  console.log(`  import deployment from '@/Contracts/sepolia.json';`);
   console.log("");
 }
  

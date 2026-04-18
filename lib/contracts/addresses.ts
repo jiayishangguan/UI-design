@@ -1,3 +1,3 @@
-import deployment from "@/contracts/sepolia.json";
+import deployment from "@/Contracts/sepolia.json";
 
 export const contractAddresses = deployment.contracts;
