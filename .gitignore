@@ -1,5 +1,7 @@
 .env
 .env.*
+.next/
+.vercel/
 node_modules/
 dist/
 build/
