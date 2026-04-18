@@ -18,8 +18,6 @@ contract AMMPool is ReentrancyGuard {
     // RT address is zero
     error InvalidRTAddress();
 
-    // treasury address is zero
-    error InvalidTreasuryAddress();
 
     // GT and RT cannot be the same token
     error SameTokenAddress();
@@ -98,8 +96,7 @@ contract AMMPool is ReentrancyGuard {
     uint256 public constant BUFFER_ALERT = 900 ; // alert
     uint256 public constant COOLDOWN_INJECT = 1 days; // wait 24 hours between inject actions
     
-    // fixed treasury address — initial liquidity and buffer RT always come from here
-    address public immutable treasury;
+
    
     // Version C buffer state
     uint256 public bufferRT; // RT stored in buffer, not in swap reserve
@@ -163,8 +160,8 @@ contract AMMPool is ReentrancyGuard {
         _;
     }
 
-    // save token address, governance address and fixed treasury address
-    constructor(address gt, address rt, address _governance, address _treasury) {
+    // save token address, governance address 
+    constructor(address gt, address rt, address _governance ) {
         // check GT address
         if (gt == address(0)) revert InvalidGTAddress();
 
@@ -176,12 +173,6 @@ contract AMMPool is ReentrancyGuard {
 
         // GT and RT must be different
         if (gt == rt) revert SameTokenAddress();
-
-        // check treasury address
-        if (_treasury == address(0)) revert InvalidTreasuryAddress();
-
-        // set fixed treasury address
-        treasury = _treasury;
 
 
         // input GT address
@@ -205,11 +196,11 @@ contract AMMPool is ReentrancyGuard {
         if (gtAmount == 0) revert ZeroGTAmount();
         if (rtAmount == 0) revert ZeroRTAmount();
 
-        // move GT from treasury to this pool(must approved)
-        if (!greenToken.transferFrom(treasury, address(this), gtAmount)) {revert GTTransferFailed();}
+        // move GT from CommitteeManager to this pool(must approved)
+        if (!greenToken.transferFrom(governance, address(this), gtAmount)) {revert GTTransferFailed();}
 
-        // move RT from treasury to this pool(must approved)
-        if (!rewardToken.transferFrom(treasury, address(this), rtAmount)) {revert RTTransferFailed();}
+        // move RT from CommitteeManager to this pool(must approved)
+        if (!rewardToken.transferFrom(governance, address(this), rtAmount)) {revert RTTransferFailed();}
 
         // save reserve
         reserveGT = gtAmount;
@@ -551,7 +542,7 @@ contract AMMPool is ReentrancyGuard {
        if (bufferRT + amount > BUFFER_SIZE) revert BufferSizeIsMax();
 
        // RT transfer to buffer failed 
-       if (!rewardToken.transferFrom(treasury, address(this), amount)) { revert BufferRTTransferFailed(); }
+       if (!rewardToken.transferFrom(governance, address(this), amount)) { revert BufferRTTransferFailed(); }
 
        // update buffer RT amount
        bufferRT += amount;

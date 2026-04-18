@@ -15,7 +15,6 @@ async function main() {
   const MEMBER_4 = "TODO_MEMBER_4";
   const MEMBER_5 = "TODO_MEMBER_5";
 
-  const TREASURY_ADDRESS = "TODO_TREASURY_ADDRESS";
 
   const GT_NAME = "TODO_GT_NAME";
   const GT_SYMBOL = "TODO_GT_SYMBOL";
@@ -76,7 +75,6 @@ async function main() {
     await greenToken.getAddress(),
     await rewardToken.getAddress(),
     await committeeManager.getAddress(),
-    TREASURY_ADDRESS
   );
   await ammPool.waitForDeployment();
 
@@ -92,7 +90,6 @@ async function main() {
   const output = {
     network: network.name,
     deployer: deployer.address,
-    treasury: TREASURY_ADDRESS,
     foundingMembers: [
       FOUNDING_MEMBER_1,
       FOUNDING_MEMBER_2,

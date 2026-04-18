@@ -37,7 +37,6 @@ contract CommitteeManager {
         //AMMPool
         INIT_POOL,          // data = abi.encode(uint256 gtAmount, uint256 rtAmount)
         INJECT_BUFFER,      // data = abi.encode(uint256 rtAmount)
-        SET_FEE_RECIPIENT,  // RESERVED — kept to preserve enum indices (feeRecipient removed from AMMPool)
         //Token Management
         SET_GT_MINTER,      // data = abi.encode(address minter)          → GreenToken.setMinter()
         SET_RT_MINTER,      // data = abi.encode(address minter)          → RewardToken.setMinter()
