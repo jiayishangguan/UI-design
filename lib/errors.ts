@@ -36,3 +36,33 @@ export function getProfileSaveErrorMessage(error: unknown) {
 
   return readable;
 }
+
+export function getReadableContractError(error: unknown, fallback = "Transaction failed before it could be confirmed.") {
+  const readable = getReadableErrorMessage(error, fallback);
+
+  if (/user rejected|rejected the request|denied transaction/i.test(readable)) {
+    return "The wallet request was rejected before submission.";
+  }
+
+  if (/not committee member/i.test(readable)) {
+    return "This wallet is not recognized as a committee member on-chain.";
+  }
+
+  if (/proposal expired/i.test(readable)) {
+    return "This proposal has already expired and can no longer be approved.";
+  }
+
+  if (/proposal already approved/i.test(readable)) {
+    return "This wallet has already approved the proposal.";
+  }
+
+  if (/proposal not pending/i.test(readable)) {
+    return "This proposal is no longer pending, so no further committee action is available.";
+  }
+
+  if (/only proposer can cancel/i.test(readable)) {
+    return "Only the original proposer can cancel this proposal.";
+  }
+
+  return readable;
+}

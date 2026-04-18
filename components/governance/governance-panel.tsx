@@ -17,15 +17,19 @@ import { Textarea } from "@/components/common/textarea";
 
 export function GovernancePanel({
   proposals,
+  members,
   threshold,
   isCommitteeMember,
+  actionError,
   onPropose,
   onApprove,
   onCancel
 }: {
   proposals: GovernanceProposal[];
+  members: string[];
   threshold?: bigint;
   isCommitteeMember?: boolean;
+  actionError?: string | null;
   onPropose: (input: { actionType: number; targetContract: `0x${string}`; params: Record<string, unknown> }) => Promise<unknown>;
   onApprove: (id: number) => Promise<unknown>;
   onCancel: (id: number) => Promise<unknown>;
@@ -46,7 +50,8 @@ export function GovernancePanel({
       <Card>
         <h1 className="font-serif text-4xl text-white">Governance</h1>
         <p className="mt-3 text-white/55">
-          Proposal encoding follows CommitteeManager ActionType indices from Solidity, not ad-hoc UI literals.
+          Proposal encoding follows CommitteeManager action indices from Solidity and simulates every action before the
+          wallet is asked to sign.
         </p>
         <div className="mt-6 space-y-4">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
@@ -54,6 +59,9 @@ export function GovernancePanel({
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
             Access: {isCommitteeMember ? "Committee member" : "Viewer"}
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
+            Committee members returned by the contract: {members.length}
           </div>
           <Select value={actionType} onChange={(event) => setActionType(event.target.value)}>
             {ACTION_TYPE_OPTIONS.map((option) => (
@@ -64,9 +72,16 @@ export function GovernancePanel({
           </Select>
           <Input readOnly value={target} />
           <Textarea value={json} onChange={(event) => setJson(event.target.value)} />
+          {actionError ? <p className="text-sm text-red-200">{actionError}</p> : null}
           <Button
             disabled={!isCommitteeMember}
-            onClick={() => onPropose({ actionType: Number(actionType), targetContract: target, params: JSON.parse(json) })}
+            onClick={() => {
+              try {
+                onPropose({ actionType: Number(actionType), targetContract: target, params: JSON.parse(json) });
+              } catch {
+                // Handled in hook state and wallet flow.
+              }
+            }}
           >
             Create Proposal
           </Button>

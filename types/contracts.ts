@@ -31,3 +31,9 @@ export type GovernanceProposal = {
   status: number;
   createdAt: bigint;
 };
+
+export type CommitteeOverview = {
+  members: string[];
+  threshold?: bigint;
+  isCommitteeMember?: boolean;
+};

@@ -12,6 +12,7 @@ const links = [
   { href: "/swap", label: "Swap" },
   { href: "/rewards", label: "Rewards" },
   { href: "/verifier", label: "Verifier" },
+  { href: "/committees", label: "Committees" },
   { href: "/governance", label: "Governance" },
   { href: "/profile", label: "Profile" }
 ];

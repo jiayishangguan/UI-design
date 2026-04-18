@@ -4,6 +4,7 @@ import { useState } from "react";
 import { decodeEventLog } from "viem";
 import { usePublicClient, useWriteContract } from "wagmi";
 
+import { getReadableContractError } from "@/lib/errors";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
 import { createTaskDraft, updateTaskAfterSubmit } from "@/lib/supabase/mutations";
@@ -43,12 +44,14 @@ export function useSubmitTask() {
     });
 
     try {
-      const hash = await writeContractAsync({
+      const simulation = await publicClient.simulateContract({
+        account: input.address as `0x${string}`,
         address: contractAddresses.ActivityVerification as `0x${string}`,
         abi: abis.ActivityVerification,
         functionName: "submitTask",
         args: [input.actionType, input.proofCID, 5n]
       });
+      const hash = await writeContractAsync(simulation.request);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
@@ -79,7 +82,7 @@ export function useSubmitTask() {
       return { hash, receipt, task: updated };
     } catch (error) {
       await updateTaskAfterSubmit(draft.id, { tx_hash: null, status: "submitted" });
-      throw error;
+      throw new Error(getReadableContractError(error, "The submission could not be sent to the contract."));
     } finally {
       setSubmitting(false);
     }

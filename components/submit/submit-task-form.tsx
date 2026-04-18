@@ -21,7 +21,39 @@ export function SubmitTaskForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState("No file selected");
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 6 }, (_, index) => String(currentYear - 1 + index));
+  const months = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" }
+  ] as const;
+  const days = Array.from({ length: 31 }, (_, index) => String(index + 1).padStart(2, "0"));
+
+  function buildIsoDate() {
+    if (!day || !month || !year) return "";
+    const iso = `${year}-${month}-${day}`;
+    const parsed = new Date(`${iso}T00:00:00`);
+    const valid =
+      !Number.isNaN(parsed.getTime()) &&
+      parsed.getUTCFullYear() === Number(year) &&
+      parsed.getUTCMonth() + 1 === Number(month) &&
+      parsed.getUTCDate() === Number(day);
+    return valid ? iso : "";
+  }
 
   return (
     <Card className="max-w-5xl animate-fade-up">
@@ -35,22 +67,40 @@ export function SubmitTaskForm({
           Use an English action title and concise description for verifier clarity.
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
-          Enter the date manually as <code>YYYY-MM-DD</code> to keep the submission format fully English.
+          Choose the date in British order: <code>DD / MM / YYYY</code>. The form will store it as an ISO date.
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
           JPG, PNG, and WebP are supported. Maximum file size is 10 MB.
         </div>
       </div>
       <form
+        noValidate
         className="mt-8 grid gap-4 md:grid-cols-2"
         onSubmit={async (event) => {
           event.preventDefault();
           setError(null);
           setSubmitting(true);
           try {
-            await onSubmit(new FormData(event.currentTarget));
+            const formData = new FormData(event.currentTarget);
+            const isoDate = buildIsoDate();
+            const actionType = String(formData.get("actionType") ?? "").trim();
+            const title = String(formData.get("title") ?? "").trim();
+            const description = String(formData.get("description") ?? "").trim();
+            const file = formData.get("file");
+
+            if (!actionType) throw new Error("Please choose an activity type.");
+            if (!title) throw new Error("Please enter a short activity title.");
+            if (!isoDate) throw new Error("Please choose a valid activity date in DD / MM / YYYY order.");
+            if (!description) throw new Error("Please enter a concise English description for the verifier.");
+            if (!(file instanceof File) || file.size === 0) throw new Error("Please choose an evidence image before submitting.");
+
+            formData.set("activity_date", isoDate);
+            await onSubmit(formData);
             event.currentTarget.reset();
             setFileName("No file selected");
+            setDay("");
+            setMonth("");
+            setYear("");
           } catch (cause) {
             setError(cause instanceof Error ? cause.message : "Submission failed");
           } finally {
@@ -68,22 +118,38 @@ export function SubmitTaskForm({
             </option>
           ))}
         </Select>
-        <Input name="title" placeholder="Title" required />
+        <Input name="title" placeholder="Title" />
         <Input name="location" placeholder="Location" />
-        <Input
-          name="activity_date"
-          type="text"
-          inputMode="numeric"
-          placeholder="YYYY-MM-DD"
-          pattern="\\d{4}-\\d{2}-\\d{2}"
-          title="Use the format YYYY-MM-DD"
-          required
-        />
+        <div className="grid grid-cols-3 gap-3">
+          <Select value={day} onChange={(event) => setDay(event.target.value)} aria-label="Day">
+            <option value="">Day</option>
+            {days.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </Select>
+          <Select value={month} onChange={(event) => setMonth(event.target.value)} aria-label="Month">
+            <option value="">Month</option>
+            {months.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </Select>
+          <Select value={year} onChange={(event) => setYear(event.target.value)} aria-label="Year">
+            <option value="">Year</option>
+            {years.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </Select>
+        </div>
         <Textarea
           className="md:col-span-2"
           name="description"
           placeholder="Describe the action in English, including what happened, where it happened, and why it matters."
-          required
         />
         <div className="md:col-span-2 rounded-[24px] border border-white/10 bg-white/[0.03] p-4">
           <input
@@ -92,7 +158,6 @@ export function SubmitTaskForm({
             name="file"
             type="file"
             accept="image/png,image/jpeg,image/webp"
-            required
             onChange={(event) => {
               const nextFile = event.target.files?.[0];
               setFileName(nextFile?.name ?? "No file selected");
