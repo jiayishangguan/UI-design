@@ -45,13 +45,30 @@ export function useGovernance(address?: `0x${string}`) {
   const proposalCount = Number(countRead.data?.[0]?.result ?? 0n);
   const proposalContracts = useMemo(
     () =>
-      Array.from({ length: proposalCount }, (_, index) => ({
-        address: contractAddresses.CommitteeManager as `0x${string}`,
-        abi: abis.CommitteeManager,
-        functionName: "getProposal" as const,
-        args: [BigInt(index)]
-      })),
-    [proposalCount]
+      Array.from({ length: proposalCount }, (_, index) => {
+        const proposalId = BigInt(index);
+        return [
+          {
+            address: contractAddresses.CommitteeManager as `0x${string}`,
+            abi: abis.CommitteeManager,
+            functionName: "getProposal" as const,
+            args: [proposalId]
+          },
+          {
+            address: contractAddresses.CommitteeManager as `0x${string}`,
+            abi: abis.CommitteeManager,
+            functionName: "getEffectiveStatus" as const,
+            args: [proposalId]
+          },
+          {
+            address: contractAddresses.CommitteeManager as `0x${string}`,
+            abi: abis.CommitteeManager,
+            functionName: "hasApproved" as const,
+            args: address ? [proposalId, address] : undefined
+          }
+        ];
+      }).flat(),
+    [address, proposalCount]
   );
 
   const proposalReads = useReadContracts({
@@ -60,10 +77,15 @@ export function useGovernance(address?: `0x${string}`) {
   });
 
   const proposals = useMemo<GovernanceProposal[]>(
-    () =>
-      (proposalReads.data ?? []).flatMap((entry, index) => {
-        if (!entry.result) return [];
-        const [actionType, targetContract, proposer, approvalCount, status, createdAt] = entry.result as readonly [
+    () => {
+      const rows = proposalReads.data ?? [];
+      const next: GovernanceProposal[] = [];
+      for (let index = 0; index < rows.length; index += 3) {
+        const proposalEntry = rows[index];
+        const effectiveStatusEntry = rows[index + 1];
+        const hasApprovedEntry = rows[index + 2];
+        if (!proposalEntry?.result) continue;
+        const [actionType, targetContract, proposer, approvalCount, status, createdAt] = proposalEntry.result as readonly [
           number,
           string,
           string,
@@ -71,18 +93,20 @@ export function useGovernance(address?: `0x${string}`) {
           number,
           bigint
         ];
-        return [
-          {
-            id: index,
-            actionType: Number(actionType),
-            targetContract,
-            proposer,
-            approvalCount,
-            status: Number(status),
-            createdAt
-          }
-        ];
-      }),
+        next.push({
+          id: Math.floor(index / 3),
+          actionType: Number(actionType),
+          targetContract,
+          proposer,
+          approvalCount,
+          status: Number(status),
+          effectiveStatus: Number(effectiveStatusEntry?.result ?? status),
+          hasApproved: Boolean(hasApprovedEntry?.result ?? false),
+          createdAt
+        });
+      }
+      return next;
+    },
     [proposalReads.data]
   );
 
@@ -113,7 +137,7 @@ export function useGovernance(address?: `0x${string}`) {
     } catch (error) {
       const readable = getReadableContractError(error, "The proposal could not be created.");
       setActionError(readable);
-      throw new Error(readable);
+      return null;
     } finally {
       setPending(false);
     }
@@ -135,7 +159,7 @@ export function useGovernance(address?: `0x${string}`) {
     } catch (error) {
       const readable = getReadableContractError(error, "The approval could not be submitted.");
       setActionError(readable);
-      throw new Error(readable);
+      return null;
     }
   }
 
@@ -155,7 +179,7 @@ export function useGovernance(address?: `0x${string}`) {
     } catch (error) {
       const readable = getReadableContractError(error, "The cancellation could not be submitted.");
       setActionError(readable);
-      throw new Error(readable);
+      return null;
     }
   }
 

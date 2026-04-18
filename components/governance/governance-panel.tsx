@@ -100,13 +100,27 @@ export function GovernancePanel({
                 <p>Target: {formatAddress(proposal.targetContract)}</p>
                 <p>Proposer: {formatAddress(proposal.proposer)}</p>
                 <p>Approvals: {proposal.approvalCount.toString()}</p>
+                <p>Current status: {proposal.effectiveStatus === 0 ? "Pending" : proposal.effectiveStatus === 1 ? "Executed" : proposal.effectiveStatus === 2 ? "Cancelled" : "Expired"}</p>
                 <p>Created: {formatDateTime(Number(proposal.createdAt) * 1000)}</p>
               </div>
+              {proposal.hasApproved ? <p className="mt-3 text-sm text-emerald-200/80">This wallet has already approved this proposal.</p> : null}
               <div className="mt-4 flex gap-3">
-                <Button variant="secondary" disabled={!isCommitteeMember} onClick={() => onApprove(proposal.id)}>
+                <Button
+                  variant="secondary"
+                  disabled={!isCommitteeMember || proposal.effectiveStatus !== 0 || proposal.hasApproved}
+                  onClick={() => {
+                    void onApprove(proposal.id);
+                  }}
+                >
                   Approve
                 </Button>
-                <Button variant="ghost" disabled={!isCommitteeMember} onClick={() => onCancel(proposal.id)}>
+                <Button
+                  variant="ghost"
+                  disabled={!isCommitteeMember || proposal.effectiveStatus !== 0}
+                  onClick={() => {
+                    void onCancel(proposal.id);
+                  }}
+                >
                   Cancel
                 </Button>
               </div>

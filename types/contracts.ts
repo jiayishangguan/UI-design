@@ -29,6 +29,8 @@ export type GovernanceProposal = {
   proposer: string;
   approvalCount: bigint;
   status: number;
+  effectiveStatus?: number;
+  hasApproved?: boolean;
   createdAt: bigint;
 };
 
