@@ -1,7 +1,0 @@
-{
-  "/governance/page": "app/governance/page.js",
-  "/rewards/page": "app/rewards/page.js",
-  "/swap/page": "app/swap/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/page": "app/page.js"
-}
