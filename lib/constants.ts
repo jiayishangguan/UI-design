@@ -11,6 +11,11 @@ export const ACTION_TYPES = [
 
 export const TASK_STATUS_LABELS = ["Pending", "Approved", "Rejected"] as const;
 export const GOVERNANCE_PHASE_LABELS = ["Phase 1", "Phase 2", "Phase 3"] as const;
+export const GOVERNANCE_PHASE_DETAILS = [
+  "Phase 1 uses committee members as the review pool because there are not enough active verifiers yet.",
+  "Phase 2 mixes committee members with eligible verifier-pool members.",
+  "Phase 3 uses only the verifier pool for activity review."
+] as const;
 export const PROPOSAL_STATUS_LABELS = ["Pending", "Executed", "Cancelled", "Expired"] as const;
 export const LEVEL_LABELS = ["Seed", "Bronze", "Silver", "Gold"] as const;
 export const LEVEL_DESCRIPTIONS = [

@@ -6,6 +6,22 @@ import rewardRedemption from "@/Contracts/abis/RewardRedemption.json";
 import rewardToken from "@/Contracts/abis/RewardToken.json";
 import verifierManager from "@/Contracts/abis/VerifierManager.json";
 
+const activityVerificationErrors = [
+  { type: "error", name: "AlreadyVoted", inputs: [] },
+  { type: "error", name: "TaskNotPending", inputs: [] },
+  { type: "error", name: "TaskNotFound", inputs: [] },
+  { type: "error", name: "CannotVoteOnOwnSubmission", inputs: [] },
+  { type: "error", name: "NotAssignedVerifier", inputs: [] },
+  { type: "error", name: "SubmissionLimitReached", inputs: [] },
+  { type: "error", name: "InvalidReward", inputs: [] },
+  { type: "error", name: "NothingQueued", inputs: [] },
+  { type: "error", name: "QueueNotReady", inputs: [] },
+  { type: "error", name: "TaskInCooldown", inputs: [] },
+  { type: "error", name: "NotCommitteeMember", inputs: [] },
+  { type: "error", name: "VerifierAlreadyVoted", inputs: [] },
+  { type: "error", name: "InvalidVerifierSlot", inputs: [] }
+] as const;
+
 const committeeManagerErrors = [
   { type: "error", name: "NotCommitteeMember", inputs: [] },
   { type: "error", name: "ZeroAddress", inputs: [] },
@@ -27,7 +43,7 @@ const committeeManagerErrors = [
 ] as const;
 
 export const abis = {
-  ActivityVerification: activityVerification.abi,
+  ActivityVerification: [...activityVerification.abi, ...activityVerificationErrors],
   VerifierManager: verifierManager.abi,
   AMMPool: ammPool.abi,
   RewardRedemption: rewardRedemption.abi,

@@ -40,6 +40,26 @@ export function getProfileSaveErrorMessage(error: unknown) {
 export function getReadableContractError(error: unknown, fallback = "Transaction failed before it could be confirmed.") {
   const readable = getReadableErrorMessage(error, fallback);
 
+  if (/TaskInCooldown/i.test(readable)) {
+    return "This activity is still in its 24-hour cooldown window, so verifier voting has not opened yet.";
+  }
+
+  if (/NotAssignedVerifier/i.test(readable)) {
+    return "This wallet is not one of the three reviewers assigned to this activity.";
+  }
+
+  if (/AlreadyVoted|VerifierAlreadyVoted/i.test(readable)) {
+    return "This reviewer has already cast a vote for the current activity.";
+  }
+
+  if (/TaskNotPending/i.test(readable)) {
+    return "This activity is no longer pending review.";
+  }
+
+  if (/CannotVoteOnOwnSubmission/i.test(readable)) {
+    return "A submitter cannot review their own activity.";
+  }
+
   if (/ProposalNotPending|0x49e7376a/i.test(readable)) {
     return "This proposal is no longer pending, so it cannot be approved again.";
   }
