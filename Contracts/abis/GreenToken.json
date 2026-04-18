@@ -1,0 +1,10 @@
+{
+  "abi": [
+    {"type":"function","stateMutability":"view","name":"balanceOf","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"allowance","inputs":[{"type":"address"},{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"nonpayable","name":"approve","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[{"type":"bool"}]},
+    {"type":"function","stateMutability":"view","name":"getTier","inputs":[{"type":"address"}],"outputs":[{"type":"uint8"}]},
+    {"type":"function","stateMutability":"view","name":"totalMinted","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}]},
+    {"type":"function","stateMutability":"view","name":"decimals","inputs":[],"outputs":[{"type":"uint8"}]}
+  ]
+}

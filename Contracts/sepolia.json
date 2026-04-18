@@ -1,0 +1,12 @@
+{
+  "chainId": 11155111,
+  "contracts": {
+    "CommitteeManager": "0xbc1a85a1dbcbb0D05919ba5eE8efb60Abacb4806",
+    "GreenToken": "0x1480FbA67440FB9AA101C22De0d802877927592f",
+    "RewardToken": "0x1bF943fAF1A69f369247c58f4a5fEF600621b0E4",
+    "AMMPool": "0x9c3B3f4F6D54C3Fb174cbE773dB9EE17A0D04f6A",
+    "VerifierManager": "0x5c40d849459bE534c72c98fDf3a23c1eDa6ea32F",
+    "ActivityVerification": "0x6FaB0088347B157710A0ac02740CfDDb9C38d83b",
+    "RewardRedemption": "0xc857D4e83d25DF2129576aB334e72D7C073Afe84"
+  }
+}

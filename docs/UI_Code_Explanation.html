@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CampusSwap 前端项目说明文档（组员阅读版）</title>
+    <style>
+      body {
+        font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        line-height: 1.7;
+        color: #1f2937;
+        margin: 40px;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #0f5132;
+      }
+      h1 {
+        border-bottom: 2px solid #0f5132;
+        padding-bottom: 8px;
+      }
+      h2 {
+        margin-top: 28px;
+        border-left: 4px solid #0f5132;
+        padding-left: 10px;
+      }
+      h3 {
+        margin-top: 22px;
+      }
+      p,
+      li {
+        margin: 8px 0;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: Menlo, Consolas, monospace;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0 24px;
+      }
+      th,
+      td {
+        border: 1px solid #d1d5db;
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+      th {
+        background: #eff6f0;
+      }
+      .note {
+        padding: 12px 14px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CampusSwap 前端项目说明文档（组员阅读版）</h1>
+
+    <h2>版本说明</h2>
+    <p>
+      本文件用于给组员快速理解当前 CampusSwap 前端项目的结构、页面职责、关键逻辑、联调依赖和协作注意点。
+    </p>
+    <p>文档语言：中文</p>
+    <p>项目路径：<code>/Users/aries/Desktop/UI-design/UI-design</code></p>
+    <p>本地访问地址：<code>http://127.0.0.1:3000</code></p>
+
+    <h2>一、项目总览</h2>
+    <p>
+      CampusSwap 是一个围绕校园可持续行为激励的前端系统。用户通过钱包连接进入平台，完成轻量
+      profile 后，可以提交绿色行为、等待 verifier 审核、获得 GT / RT、参与兑换，并查看奖励、兑换历史和治理页面。
+    </p>
+    <p>当前前端采用：Next.js 14、TypeScript、React、Tailwind CSS、RainbowKit + wagmi、viem、Supabase。</p>
+    <p>当前钱包连接模式：MetaMask only，不再依赖 WalletConnect Project ID。</p>
+
+    <h2>二、目录结构总览</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>目录</th>
+          <th>作用</th>
+          <th>组员需要关注什么</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>app</td><td>页面路由与 API Route</td><td>看每个页面入口和接口逻辑</td></tr>
+        <tr><td>components</td><td>可复用 UI 组件</td><td>看视觉组件怎么拆、哪些能复用</td></tr>
+        <tr><td>hooks</td><td>页面业务逻辑和链上链下交互</td><td>看 submit / swap / rewards / profile 的核心流程</td></tr>
+        <tr><td>lib</td><td>工具函数、环境变量、Supabase、合约配置</td><td>看项目底层依赖、配置入口</td></tr>
+        <tr><td>contracts</td><td>ABI、地址、后端参考文件</td><td>前端联调用，不能随意改 Solidity</td></tr>
+        <tr><td>docs</td><td>文档说明</td><td>给组员和答辩准备材料</td></tr>
+      </tbody>
+    </table>
+
+    <h2>三、页面路由说明（app）</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>文件路径</th>
+          <th>页面/接口</th>
+          <th>主要职责</th>
+          <th>关键说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>app/layout.tsx</td><td>全局布局</td><td>挂载 Providers、AppShell、全局样式</td><td>所有页面共用</td></tr>
+        <tr><td>app/providers.tsx</td><td>全局 provider</td><td>配置 wagmi、RainbowKit、React Query</td><td>当前已改为 MetaMask-only</td></tr>
+        <tr><td>app/globals.css</td><td>全局样式</td><td>背景、动画、全局视觉语义</td><td>所有样式基础在这里</td></tr>
+        <tr><td>app/page.tsx</td><td>首页 Dashboard</td><td>展示 Hero、token、level、活动概览</td><td>首页可浏览，不强制 profile</td></tr>
+        <tr><td>app/profile/page.tsx</td><td>Profile 页面</td><td>编辑和保存用户档案</td><td>资料修改不影响 GT / RT</td></tr>
+        <tr><td>app/submit/page.tsx</td><td>Submit 页面</td><td>提交活动、上传证据、触发合约调用</td><td>强制 profile</td></tr>
+        <tr><td>app/verifier/page.tsx</td><td>Verifier 列表</td><td>审核任务列表展示</td><td>进入单任务详情</td></tr>
+        <tr><td>app/verifier/[id]/page.tsx</td><td>Verifier 详情</td><td>单任务查看、投票、finalize</td><td>有 cooldown / voting / expired 阶段</td></tr>
+        <tr><td>app/swap/page.tsx</td><td>Swap 页面</td><td>GT / RT 双向兑换</td><td>展示费率和限制</td></tr>
+        <tr><td>app/rewards/page.tsx</td><td>Rewards 页面</td><td>奖励目录和兑换流程</td><td>强制 profile</td></tr>
+        <tr><td>app/my-redemptions/page.tsx</td><td>我的兑换记录</td><td>显示兑换历史与兑换码</td><td>来自 Supabase</td></tr>
+        <tr><td>app/governance/page.tsx</td><td>Governance 页面</td><td>提案列表与提案创建</td><td>按 Solidity ActionType 走</td></tr>
+        <tr><td>app/verifier-pool/page.tsx</td><td>Verifier Pool 页面</td><td>加入/退出 verifier pool</td><td>强制 profile</td></tr>
+        <tr><td>app/api/profile/route.ts</td><td>Profile API</td><td>服务端读写 user_profiles</td><td>当前 profile 核心修复点</td></tr>
+        <tr><td>app/api/upload-ipfs/route.ts</td><td>Upload API</td><td>上传图片到 Pinata</td><td>避免前端暴露 JWT</td></tr>
+        <tr><td>app/api/reward-cost/route.ts</td><td>Reward Cost API</td><td>获取奖励动态价格</td><td>服务端读链上成本</td></tr>
+      </tbody>
+    </table>
+
+    <h2>四、核心 UI 组件说明（components）</h2>
+
+    <h3>1. 通用组件 components/common</h3>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>组件名</th><th>作用</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/common/button.tsx</td><td>Button</td><td>统一按钮视觉与状态</td></tr>
+        <tr><td>components/common/card.tsx</td><td>Card</td><td>所有卡片容器的视觉基础</td></tr>
+        <tr><td>components/common/input.tsx</td><td>Input</td><td>统一输入框样式</td></tr>
+        <tr><td>components/common/textarea.tsx</td><td>Textarea</td><td>多行文本输入</td></tr>
+        <tr><td>components/common/select.tsx</td><td>Select</td><td>下拉框样式</td></tr>
+        <tr><td>components/common/badge.tsx</td><td>Badge</td><td>状态标签，比如 approved / pending</td></tr>
+        <tr><td>components/common/stat-card.tsx</td><td>StatCard</td><td>首页数字卡片</td></tr>
+        <tr><td>components/common/empty-state.tsx</td><td>EmptyState</td><td>空状态占位</td></tr>
+        <tr><td>components/common/dialog.tsx</td><td>Dialog</td><td>profile gate 等弹窗容器</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2. 布局组件 components/layout</h3>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/layout/app-shell.tsx</td><td>页面外壳</td><td>控制页面宽度和主布局</td></tr>
+        <tr><td>components/layout/top-nav.tsx</td><td>顶部导航</td><td>Logo、导航菜单、钱包区域</td></tr>
+        <tr><td>components/layout/env-banner.tsx</td><td>环境变量提示条</td><td>缺失配置时在页面顶部提示</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3. 首页与内容模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/dashboard/hero.tsx</td><td>首页 Hero 区</td><td>首页主标题、简介、CTA、介绍卡片</td></tr>
+        <tr><td>components/dashboard/recent-activity.tsx</td><td>最近活动列表</td><td>展示 Supabase 中的最近任务</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4. Profile 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/profile/profile-form.tsx</td><td>Profile 编辑表单</td><td>个人档案页使用</td></tr>
+        <tr><td>components/profile/profile-gate-dialog.tsx</td><td>Profile 引导弹窗</td><td>受限页面未建档时弹出</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5. Submit 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/submit/submit-task-form.tsx</td><td>提交活动表单</td><td>已改为英文日期输入和自定义文件选择区</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6. Swap / Rewards / Verifier / Governance / Pool</h3>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/swap/swap-panel.tsx</td><td>兑换面板</td><td>approve + swap + 池子数据</td></tr>
+        <tr><td>components/rewards/rewards-catalog.tsx</td><td>奖励目录</td><td>展示奖励和兑换入口</td></tr>
+        <tr><td>components/rewards/redemption-list.tsx</td><td>兑换记录列表</td><td>显示兑换码与 claimed 状态</td></tr>
+        <tr><td>components/verifier/verifier-list.tsx</td><td>审核列表</td><td>审核任务列表</td></tr>
+        <tr><td>components/verifier/verifier-detail.tsx</td><td>审核详情</td><td>倒计时、投票、committee replace</td></tr>
+        <tr><td>components/governance/governance-panel.tsx</td><td>治理面板</td><td>proposal 展示与创建</td></tr>
+        <tr><td>components/verifier-pool/verifier-pool-card.tsx</td><td>verifier pool 主卡片</td><td>threshold、stake、phase、join/leave</td></tr>
+      </tbody>
+    </table>
+
+    <h2>五、业务逻辑层说明（hooks）</h2>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>关键点</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>hooks/use-app-wallet.ts</td><td>钱包信息读取</td><td>统一拿 address、GT、RT 余额</td></tr>
+        <tr><td>hooks/use-profile.ts</td><td>Profile 状态管理</td><td>查询、保存、刷新 profile</td></tr>
+        <tr><td>hooks/use-profile-gate.ts</td><td>Profile 门槛逻辑</td><td>控制是否需要 profile</td></tr>
+        <tr><td>hooks/use-contract-reads.ts</td><td>首页链上读取</td><td>tier、minted、phase、reserves</td></tr>
+        <tr><td>hooks/use-submit-task.ts</td><td>提交流程</td><td>先写 draft，再上链，再回写 taskId</td></tr>
+        <tr><td>hooks/use-swap.ts</td><td>兑换流程</td><td>approve + swap</td></tr>
+        <tr><td>hooks/use-redeem-reward.ts</td><td>兑换奖励流程</td><td>approve RT、redeem、写 redemptions</td></tr>
+        <tr><td>hooks/use-verifier-pool.ts</td><td>verifier pool 流程</td><td>approve stake、join、leave</td></tr>
+        <tr><td>hooks/use-governance.ts</td><td>治理流程</td><td>proposal 列表、approve、cancel、propose</td></tr>
+      </tbody>
+    </table>
+
+    <h2>六、底层工具与配置说明（lib）</h2>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>lib/cn.ts</td><td>className 合并</td><td>Tailwind 组合工具</td></tr>
+        <tr><td>lib/constants.ts</td><td>常量定义</td><td>action types、level labels、status labels</td></tr>
+        <tr><td>lib/format.ts</td><td>格式化工具</td><td>地址、日期、token、兑换码等</td></tr>
+        <tr><td>lib/env.ts</td><td>环境变量读取</td><td>前端可见 env 入口</td></tr>
+        <tr><td>lib/errors.ts</td><td>错误信息转可读文本</td><td>把 Supabase / fetch 错误变成人能看懂的提示</td></tr>
+        <tr><td>lib/proposal-encoder.ts</td><td>治理编码器</td><td>把前端输入编码为 bytes</td></tr>
+        <tr><td>lib/contracts/addresses.ts</td><td>合约地址统一出口</td><td>从 sepolia.json 读取</td></tr>
+        <tr><td>lib/contracts/abis.ts</td><td>ABI 聚合</td><td>各合约 ABI 统一导出</td></tr>
+        <tr><td>lib/contracts/enums.ts</td><td>枚举映射</td><td>TaskStatus、ProposalStatus 等</td></tr>
+        <tr><td>lib/supabase/browser.ts</td><td>浏览器 Supabase client</td><td>当前仍给 tasks/redemptions 用</td></tr>
+        <tr><td>lib/supabase/server.ts</td><td>服务端 Supabase client</td><td>新增，用于 profile API</td></tr>
+        <tr><td>lib/supabase/queries.ts</td><td>读取接口封装</td><td>getProfile、getTasksBySubmitter 等</td></tr>
+        <tr><td>lib/supabase/mutations.ts</td><td>写入接口封装</td><td>upsertProfile、createTaskDraft、createRedemption</td></tr>
+      </tbody>
+    </table>
+
+    <h2>七、合约与联调文件说明（contracts）</h2>
+    <table>
+      <thead>
+        <tr><th>文件路径</th><th>作用</th><th>协作说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>contracts/sepolia.json</td><td>合约地址配置</td><td>前端统一从这里读地址，组件内不硬编码</td></tr>
+        <tr><td>contracts/abis/*.json</td><td>ABI 文件</td><td>前端调用合约时使用</td></tr>
+        <tr><td>contracts/supabase_schema.sql</td><td>数据库 schema</td><td>建表参考，前后端联调用</td></tr>
+        <tr><td>contracts/*.sol</td><td>Solidity 合约源码</td><td>只读参考，前端不要改</td></tr>
+      </tbody>
+    </table>
+
+    <h2>八、当前已经完成的关键修复</h2>
+    <ul>
+      <li>钱包连接已改成 MetaMask-only，不再强依赖 WalletConnect Project ID。</li>
+      <li>Profile 读写已补 app/api/profile/route.ts，前端不再直接通过浏览器 fetch Supabase。</li>
+      <li>提交页已改为英文日期输入 YYYY-MM-DD，文件上传改为英文按钮和英文状态文本。</li>
+      <li>首页已增加更完整的介绍内容和 Level 展示，文案更适合校园场景。</li>
+      <li>已增加环境变量提示横幅，若 .env.local 缺配置会直接提示。</li>
+    </ul>
+
+    <h2>九、组员协作建议</h2>
+    <table>
+      <thead>
+        <tr><th>场景</th><th>建议负责人</th><th>协作建议</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>UI 微调</td><td>前端设计同学</td><td>主要改 components 和 globals.css</td></tr>
+        <tr><td>业务流程联调</td><td>前端开发同学</td><td>重点看 hooks 和 app 页面入口</td></tr>
+        <tr><td>合约联调</td><td>区块链同学 + 前端同学</td><td>对照 contracts/abis 和 sepolia.json</td></tr>
+        <tr><td>Supabase 联调</td><td>后端/全栈同学</td><td>对照 supabase_schema.sql 与 app/api/profile/route.ts</td></tr>
+        <tr><td>文档答辩</td><td>组长 / 产品同学</td><td>参考本文件和 docs 内其他说明</td></tr>
+      </tbody>
+    </table>
+
+    <h2>十、当前运行前必须确认的配置</h2>
+    <p>文件位置：<code>/Users/aries/Desktop/UI-design/UI-design/.env.local</code></p>
+    <p>至少要确认以下内容是真实值：</p>
+    <ul>
+      <li>NEXT_PUBLIC_SEPOLIA_RPC</li>
+      <li>NEXT_PUBLIC_SUPABASE_URL</li>
+      <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+      <li>PINATA_JWT</li>
+      <li>SUPABASE_SERVICE_KEY</li>
+    </ul>
+    <p>如果使用 MetaMask-only：<code>NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID</code> 可以为空。</p>
+
+    <h2>十一、组员快速上手顺序</h2>
+    <ol>
+      <li>先看 <code>app/page.tsx</code>，理解首页结构</li>
+      <li>再看 <code>app/submit/page.tsx</code> + <code>hooks/use-submit-task.ts</code>，理解完整核心流程</li>
+      <li>再看 <code>app/api/profile/route.ts</code> + <code>hooks/use-profile.ts</code>，理解 profile 修复逻辑</li>
+      <li>再看 <code>app/swap/page.tsx</code>、<code>app/rewards/page.tsx</code>、<code>app/governance/page.tsx</code>，理解其他功能模块</li>
+      <li>最后看 <code>components</code> 和 <code>lib</code>，理解视觉与底层封装</li>
+    </ol>
+
+    <h2>十二、当前结论</h2>
+    <p>
+      这份前端已经不是静态 demo，而是一个有页面结构、钱包连接、profile gate、合约调用入口、Supabase
+      读写、上传接口、奖励、治理、审核、兑换模块的多页面前端工程。
+    </p>
+    <p>如果组员要继续接手，优先从 <code>app/</code>、<code>hooks/</code>、<code>app/api/profile/route.ts</code>、<code>lib/supabase/</code> 入手即可。</p>
+
+    <h2>十三、文件汇总总表（文件名 / 文件格式 / 内容概括）</h2>
+    <div class="note">
+      <p>说明：</p>
+      <p>1. “文件格式”按要求归类为：React / Next.js / Tailwind CSS / 其他</p>
+      <p>2. 如果不属于前三者，会在“其他”后写清具体格式，例如：TypeScript 工具、JSON、SQL、Solidity、Markdown</p>
+      <p>3. 为了便于组员阅读，这里按模块分表展示</p>
+    </div>
+
+    <h3>13.1 app 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件名</th><th>文件格式</th><th>对应内容简单概括（中文）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>app/layout.tsx</td><td>Next.js</td><td>全局布局入口，挂载 Providers、AppShell 和全局样式</td></tr>
+        <tr><td>app/providers.tsx</td><td>Next.js</td><td>配置 wagmi、RainbowKit、React Query，目前为 MetaMask-only 模式</td></tr>
+        <tr><td>app/globals.css</td><td>Tailwind CSS</td><td>全局背景、动画、排版、颜色和基础视觉语义</td></tr>
+        <tr><td>app/page.tsx</td><td>Next.js</td><td>首页 Dashboard，展示 Hero、余额、Level、活动概览和 profile 引导</td></tr>
+        <tr><td>app/profile/page.tsx</td><td>Next.js</td><td>Profile 页面入口，负责加载并提交档案表单</td></tr>
+        <tr><td>app/submit/page.tsx</td><td>Next.js</td><td>Submit 页面入口，负责 profile gate、提交活动和上传流程</td></tr>
+        <tr><td>app/verifier/page.tsx</td><td>Next.js</td><td>审核任务列表页面入口</td></tr>
+        <tr><td>app/verifier/[id]/page.tsx</td><td>Next.js</td><td>单任务审核详情页入口，处理投票、finalize 和 replace vote</td></tr>
+        <tr><td>app/swap/page.tsx</td><td>Next.js</td><td>GT / RT 兑换页入口</td></tr>
+        <tr><td>app/rewards/page.tsx</td><td>Next.js</td><td>奖励页入口，负责奖励目录读取与兑换流程</td></tr>
+        <tr><td>app/my-redemptions/page.tsx</td><td>Next.js</td><td>我的兑换记录页入口</td></tr>
+        <tr><td>app/governance/page.tsx</td><td>Next.js</td><td>治理页入口，负责提案展示和提交</td></tr>
+        <tr><td>app/verifier-pool/page.tsx</td><td>Next.js</td><td>verifier pool 页面入口，负责 join / leave 逻辑接入</td></tr>
+        <tr><td>app/api/profile/route.ts</td><td>Next.js</td><td>服务端 profile API，负责读取和保存 user_profiles</td></tr>
+        <tr><td>app/api/upload-ipfs/route.ts</td><td>Next.js</td><td>服务端上传接口，把证据文件上传到 Pinata</td></tr>
+        <tr><td>app/api/reward-cost/route.ts</td><td>Next.js</td><td>服务端接口，用于读取奖励的当前动态价格</td></tr>
+      </tbody>
+    </table>
+
+    <h3>13.2 components 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件名</th><th>文件格式</th><th>对应内容简单概括（中文）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>components/common/button.tsx</td><td>React</td><td>通用按钮组件，统一主按钮、次按钮、危险按钮样式</td></tr>
+        <tr><td>components/common/card.tsx</td><td>React</td><td>通用卡片容器组件，提供统一圆角、边框、阴影和背景</td></tr>
+        <tr><td>components/common/input.tsx</td><td>React</td><td>通用单行输入框组件</td></tr>
+        <tr><td>components/common/textarea.tsx</td><td>React</td><td>通用多行输入框组件</td></tr>
+        <tr><td>components/common/select.tsx</td><td>React</td><td>通用下拉选择组件</td></tr>
+        <tr><td>components/common/badge.tsx</td><td>React</td><td>通用状态标签组件</td></tr>
+        <tr><td>components/common/stat-card.tsx</td><td>React</td><td>首页数字卡片组件，用于展示 GT / RT / level 信息</td></tr>
+        <tr><td>components/common/empty-state.tsx</td><td>React</td><td>空状态展示组件</td></tr>
+        <tr><td>components/common/dialog.tsx</td><td>React</td><td>通用弹窗容器组件</td></tr>
+        <tr><td>components/layout/app-shell.tsx</td><td>React</td><td>页面整体壳层，统一页面宽度和结构</td></tr>
+        <tr><td>components/layout/top-nav.tsx</td><td>React</td><td>顶部导航栏，包含 Logo、菜单和钱包连接区域</td></tr>
+        <tr><td>components/layout/env-banner.tsx</td><td>React</td><td>环境变量提示条，缺失配置时顶部提醒</td></tr>
+        <tr><td>components/dashboard/hero.tsx</td><td>React</td><td>首页 Hero 区域，包含校园化文案、CTA 和介绍卡片</td></tr>
+        <tr><td>components/dashboard/recent-activity.tsx</td><td>React</td><td>首页最近活动列表组件</td></tr>
+        <tr><td>components/profile/profile-form.tsx</td><td>React</td><td>Profile 页面表单组件，负责编辑和保存档案</td></tr>
+        <tr><td>components/profile/profile-gate-dialog.tsx</td><td>React</td><td>profile 引导弹窗组件，受限页面未建档时展示</td></tr>
+        <tr><td>components/submit/submit-task-form.tsx</td><td>React</td><td>提交活动表单组件，含英文日期输入和自定义文件上传 UI</td></tr>
+        <tr><td>components/swap/swap-panel.tsx</td><td>React</td><td>兑换主面板，展示输入、费率、限制和兑换操作</td></tr>
+        <tr><td>components/rewards/rewards-catalog.tsx</td><td>React</td><td>奖励目录组件，展示奖励、价格和兑换入口</td></tr>
+        <tr><td>components/rewards/redemption-list.tsx</td><td>React</td><td>我的兑换记录列表组件</td></tr>
+        <tr><td>components/verifier/verifier-list.tsx</td><td>React</td><td>审核任务列表组件</td></tr>
+        <tr><td>components/verifier/verifier-detail.tsx</td><td>React</td><td>审核详情组件，包含阶段、倒计时和投票按钮</td></tr>
+        <tr><td>components/governance/governance-panel.tsx</td><td>React</td><td>治理主界面组件，展示 proposal 和创建表单</td></tr>
+        <tr><td>components/verifier-pool/verifier-pool-card.tsx</td><td>React</td><td>verifier pool 主卡片组件，展示门槛、阶段和加入退出按钮</td></tr>
+      </tbody>
+    </table>
+
+    <h3>13.3 hooks 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件名</th><th>文件格式</th><th>对应内容简单概括（中文）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>hooks/use-app-wallet.ts</td><td>React</td><td>钱包状态 hook，读取地址、GT 余额和 RT 余额</td></tr>
+        <tr><td>hooks/use-profile.ts</td><td>React</td><td>profile 状态 hook，负责查询、保存、刷新档案</td></tr>
+        <tr><td>hooks/use-profile-gate.ts</td><td>React</td><td>profile 门槛 hook，判断是否需要强制建档</td></tr>
+        <tr><td>hooks/use-contract-reads.ts</td><td>React</td><td>首页聚合链上读取 hook</td></tr>
+        <tr><td>hooks/use-submit-task.ts</td><td>React</td><td>提交活动核心 hook，负责 draft、上链、receipt 和回写</td></tr>
+        <tr><td>hooks/use-swap.ts</td><td>React</td><td>兑换核心 hook，负责 approve 和 swap</td></tr>
+        <tr><td>hooks/use-redeem-reward.ts</td><td>React</td><td>奖励兑换 hook，负责 approve RT、redeem 和保存记录</td></tr>
+        <tr><td>hooks/use-verifier-pool.ts</td><td>React</td><td>verifier pool hook，负责 approve stake、join、leave</td></tr>
+        <tr><td>hooks/use-governance.ts</td><td>React</td><td>治理 hook，负责 proposal 列表、approve、cancel、propose</td></tr>
+      </tbody>
+    </table>
+
+    <h3>13.4 lib 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件名</th><th>文件格式</th><th>对应内容简单概括（中文）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>lib/cn.ts</td><td>其他（TypeScript 工具）</td><td>合并 Tailwind className 的工具函数</td></tr>
+        <tr><td>lib/constants.ts</td><td>其他（TypeScript 常量）</td><td>项目常量、状态文字、Level 文案等</td></tr>
+        <tr><td>lib/format.ts</td><td>其他（TypeScript 工具）</td><td>地址、时间、token、兑换码等格式化方法</td></tr>
+        <tr><td>lib/env.ts</td><td>其他（TypeScript 配置）</td><td>前端可见环境变量读取与默认值处理</td></tr>
+        <tr><td>lib/errors.ts</td><td>其他（TypeScript 工具）</td><td>把 fetch / Supabase 错误转成可读提示</td></tr>
+        <tr><td>lib/proposal-encoder.ts</td><td>其他（TypeScript 工具）</td><td>治理提案参数编码器</td></tr>
+        <tr><td>lib/contracts/addresses.ts</td><td>其他（TypeScript 配置）</td><td>从 sepolia.json 统一导出合约地址</td></tr>
+        <tr><td>lib/contracts/abis.ts</td><td>其他（TypeScript 配置）</td><td>统一导出前端使用的 ABI</td></tr>
+        <tr><td>lib/contracts/enums.ts</td><td>其他（TypeScript 配置）</td><td>链上 enum 到文本状态的映射</td></tr>
+        <tr><td>lib/supabase/browser.ts</td><td>其他（TypeScript 配置）</td><td>浏览器侧 Supabase client</td></tr>
+        <tr><td>lib/supabase/server.ts</td><td>其他（TypeScript 配置）</td><td>服务端 Supabase client，用于 API Route</td></tr>
+        <tr><td>lib/supabase/queries.ts</td><td>其他（TypeScript 数据层）</td><td>封装 profile、tasks、redemptions 的读取逻辑</td></tr>
+        <tr><td>lib/supabase/mutations.ts</td><td>其他（TypeScript 数据层）</td><td>封装 profile、task draft、redemption 的写入逻辑</td></tr>
+      </tbody>
+    </table>
+
+    <h3>13.5 contracts 模块</h3>
+    <table>
+      <thead>
+        <tr><th>文件名</th><th>文件格式</th><th>对应内容简单概括（中文）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>contracts/ActivityVerification.sol</td><td>其他（Solidity）</td><td>活动提交、审核投票、任务状态和奖励发放逻辑</td></tr>
+        <tr><td>contracts/VerifierManager.sol</td><td>其他（Solidity）</td><td>verifier pool 管理、质押、阶段切换和处罚逻辑</td></tr>
+        <tr><td>contracts/RewardRedemption.sol</td><td>其他（Solidity）</td><td>奖励目录和 RT 兑换逻辑</td></tr>
+        <tr><td>contracts/GreenToken.sol</td><td>其他（Solidity）</td><td>GT 代币逻辑，包括 mint、slash、tier</td></tr>
+        <tr><td>contracts/RewardToken.sol</td><td>其他（Solidity）</td><td>RT 代币逻辑，包括 mint、burn、approve</td></tr>
+        <tr><td>contracts/AMMPool.sol</td><td>其他（Solidity）</td><td>GT / RT AMM 池逻辑，包括费率和兑换限制</td></tr>
+        <tr><td>contracts/CommitteeManager.sol</td><td>其他（Solidity）</td><td>治理提案和委员会管理逻辑</td></tr>
+        <tr><td>contracts/README.md</td><td>其他（Markdown）</td><td>合约目录的简要说明</td></tr>
+        <tr><td>contracts/supabase_schema.sql</td><td>其他（SQL）</td><td>Supabase 建表脚本和基础策略定义</td></tr>
+        <tr><td>contracts/sepolia.json</td><td>其他（JSON）</td><td>Sepolia 合约地址配置文件</td></tr>
+        <tr><td>contracts/abis/ActivityVerification.json</td><td>其他（JSON）</td><td>ActivityVerification 的 ABI</td></tr>
+        <tr><td>contracts/abis/VerifierManager.json</td><td>其他（JSON）</td><td>VerifierManager 的 ABI</td></tr>
+        <tr><td>contracts/abis/RewardRedemption.json</td><td>其他（JSON）</td><td>RewardRedemption 的 ABI</td></tr>
+        <tr><td>contracts/abis/GreenToken.json</td><td>其他（JSON）</td><td>GreenToken 的 ABI</td></tr>
+        <tr><td>contracts/abis/RewardToken.json</td><td>其他（JSON）</td><td>RewardToken 的 ABI</td></tr>
+        <tr><td>contracts/abis/AMMPool.json</td><td>其他（JSON）</td><td>AMMPool 的 ABI</td></tr>
+        <tr><td>contracts/abis/CommitteeManager.json</td><td>其他（JSON）</td><td>CommitteeManager 的 ABI</td></tr>
+      </tbody>
+    </table>
+
+    <h2>十四、使用这张总表的方式</h2>
+    <ul>
+      <li>如果组员是前端同学：先看 app 和 components 两张表。</li>
+      <li>如果组员是负责联调的同学：重点看 hooks、lib/supabase、contracts 三张表。</li>
+      <li>如果组员是做答辩或文档的同学：先看“项目总览”“页面路由说明”“文件汇总总表”这三部分。</li>
+    </ul>
+  </body>
+</html>
