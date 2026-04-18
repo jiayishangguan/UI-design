@@ -10,7 +10,6 @@ export default function SwapPage() {
 
   return (
     <SwapPanel
-      feeRate={swap.data?.[2]?.result as bigint | undefined}
       reserves={swap.data?.[1]?.result as readonly [bigint, bigint, bigint] | undefined}
       poolStatus={swap.data?.[0]?.result as readonly [bigint, bigint, bigint, bigint, bigint] | undefined}
       remainingDailyGt={swap.data?.[3]?.result as bigint | undefined}

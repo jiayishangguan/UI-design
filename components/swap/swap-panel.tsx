@@ -10,7 +10,6 @@ import { formatDateTime, formatToken } from "@/lib/format";
 const TARGET_RT = 3000n;
 
 export function SwapPanel({
-  feeRate,
   reserves,
   poolStatus,
   remainingDailyGt,
@@ -22,7 +21,6 @@ export function SwapPanel({
   onApprove,
   onSwap
 }: {
-  feeRate?: bigint;
   reserves?: readonly [bigint, bigint, bigint];
   poolStatus?: readonly [bigint, bigint, bigint, bigint, bigint];
   remainingDailyGt?: bigint;
@@ -44,13 +42,11 @@ export function SwapPanel({
   const actualGt = actualPoolGt ?? 0n;
   const actualRt = actualPoolRt ?? 0n;
   const displayFeeRate =
-    feeRate ?? (
-      reserveRt * 100n > TARGET_RT * 80n ? 10n :
-      reserveRt * 100n >= TARGET_RT * 60n ? 30n :
-      reserveRt * 100n >= TARGET_RT * 40n ? 70n :
-      reserveRt > 0n ? 150n :
-      0n
-    );
+    reserveRt * 100n > TARGET_RT * 80n ? 10n :
+    reserveRt * 100n >= TARGET_RT * 60n ? 30n :
+    reserveRt * 100n >= TARGET_RT * 40n ? 70n :
+    reserveRt > 0n ? 150n :
+    0n;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

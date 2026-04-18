@@ -53,7 +53,11 @@ export function useSwap(address?: `0x${string}`) {
         functionName: "balanceOf",
         args: [contractAddresses.AMMPool as `0x${string}`]
       }
-    ]
+    ],
+    query: {
+      refetchInterval: 4000,
+      refetchIntervalInBackground: true
+    }
   });
 
   async function approveToken(token: "GT" | "RT", amount: string) {
@@ -70,7 +74,9 @@ export function useSwap(address?: `0x${string}`) {
         parseUnits(amount || "0", 0)
       ]
     });
-    return publicClient.waitForTransactionReceipt({ hash });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    await reads.refetch();
+    return receipt;
   }
 
   async function swap(direction: "GT_TO_RT" | "RT_TO_GT", amountIn: string, minOut: string) {
@@ -83,7 +89,9 @@ export function useSwap(address?: `0x${string}`) {
         functionName: direction === "GT_TO_RT" ? "swapGTforRT" : "swapRTforGT",
         args: [parseUnits(amountIn || "0", 0), parseUnits(minOut || "0", 0)]
       });
-      return await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      await reads.refetch();
+      return receipt;
     } finally {
       setPending(false);
     }
