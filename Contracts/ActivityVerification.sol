@@ -320,17 +320,17 @@ contract ActivityVerification is ReentrancyGuard {
         emit QueuedGTClaimed(_taskId, msg.sender, t.gtReward);
     }
 
-    // try to burn verifier's GT
+    // use stake and then use verifier's wallet
     function _burnVerifierGT(address _verifier, uint256 _amount) internal{
 
         // Slash stake first
         uint256 deductedFromStake = verifierManager.slashFromStake(_verifier, _amount);
         
-        // Calculate GT 
-        uint256 remaining = _amount - deductedFromStake;
+        uint256 remaining = _amount - deductedFromStake; // calculate left penalty
 
-        // Slash GT
-        if (remaining > 0) { greenToken.slash(_verifier, remaining); }
+        
+        
+        if (remaining > 0) { greenToken.slash(_verifier, remaining); } // if stake is not enough
     }
 
     // Get the verifier assigned to a specific task

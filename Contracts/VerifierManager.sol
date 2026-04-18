@@ -11,10 +11,6 @@ interface ICommitteeManager {
     function getMembers() external view returns (address[] memory);
 }
 
-// add interface to use GreenToken's function
-interface IGreenToken is IERC20{
-    function burn(uint256 amount) external returns (uint256 actualAmount); // to burn GT
-}
 
 contract VerifierManager is ReentrancyGuard {
     error ThresholdNotMet();       // not enough GT
@@ -56,7 +52,7 @@ contract VerifierManager is ReentrancyGuard {
         bool isActive;             
     }
 
-    IGreenToken public immutable greenToken; // Save GT contract with burn support.
+    IERC20 public immutable greenToken; // save GT token contract
     ICommitteeManager public immutable committee;
     
     // Only ActivityVerification can call reportPerformance
@@ -92,7 +88,7 @@ contract VerifierManager is ReentrancyGuard {
     event VerifierAutoRemoved(address indexed verifier, uint256 returnedStake);
 
     constructor(address _gt, address _committee) {
-        greenToken = IGreenToken(_gt);  // Treat the GT address as the GT interface.
+        greenToken = IERC20(_gt);  // save GT token address
         committee = ICommitteeManager(_committee);
         currentPhase = GovernancePhase.Phase1;
     }
@@ -182,9 +178,9 @@ contract VerifierManager is ReentrancyGuard {
         }
     }
 
-    // to burn the stake
+    // slash locked stake
     function slashFromStake(address _verifier, uint256 _amount) external onlyActivityVerification returns(uint256 deducted) {
-        if (_amount == 0) { return 0; } // Return zero because nothing was slashed
+        if (_amount == 0) { return 0; } // do nothing if 0
 
         // Load this verifier's data
         Verifier storage v = verifiers[_verifier];  
@@ -192,16 +188,16 @@ contract VerifierManager is ReentrancyGuard {
         // Read current locked GT
         uint256 currentStake = v.stakedGT;
 
-        // If this verifier has no stake, return zero and stop
+        // If this verifier has no stake, return zero
         if (currentStake == 0) { return 0; }
 
         // Slash the smaller one
         deducted = currentStake < _amount ? currentStake : _amount;
 
-        // Update remaining locked stake first
+        // Update remaining locked stake 
         v.stakedGT = currentStake - deducted;
 
-        greenToken.burn(deducted); // burn GT
+    
 
         // record this 
         emit StakeSituation( _verifier, _amount, deducted, v.stakedGT);

@@ -25,7 +25,9 @@ contract CommitteeManager {
     error EmptyProposalData();
     error ProposalNotFound();
     error ExecutionFailed();
-
+    error StartPhaseLocked();   // setup is locked, cannot do this now
+    error StartAlreadyLocked(); // setup was already locked
+    
     // ENUMS
     /// @notice Types of actions that can be proposed
     enum ActionType {
@@ -39,12 +41,15 @@ contract CommitteeManager {
         //Token Management
         SET_GT_MINTER,      // data = abi.encode(address minter)          → GreenToken.setMinter()
         SET_RT_MINTER,      // data = abi.encode(address minter)          → RewardToken.setMinter()
-        MINT_RT,            // data = abi.encode(address to, uint256 amt) → RewardToken.mint()
+        MINT_RT,            // data = abi.encode(address to, uint256 amt) → RewardToken.mint()  
         //Reward Management
         ADD_REWARD,         // data = abi.encode(string name, uint256 baseCost) → RewardRedemption.addReward()
         REMOVE_REWARD,      // data = abi.encode(uint256 rewardId)              → RewardRedemption.removeReward()
         //For future expansion:
-        GENERIC_CALL        // data = abi.encode(bytes callData) → target.call(callData)
+        GENERIC_CALL,       // data = abi.encode(bytes callData) → target.call(callData) 
+        MINT_GT, 
+        LOCK_START // lock setup actions
+
     }
 
     /// @notice Proposal status
@@ -73,6 +78,8 @@ contract CommitteeManager {
     address[] public members;
     uint256 public memberCount;
 
+    bool public startLocked; // false = setup open // true = setup locked
+
     uint256 public proposalCount;
     mapping(uint256 => Proposal) public proposals;
 
@@ -100,6 +107,8 @@ contract CommitteeManager {
 
     event ProposalExecuted(uint256 indexed proposalId, ActionType actionType);
     event ProposalCancelled(uint256 indexed proposalId, address indexed canceller);
+
+    event StartLockActivated();  // setup is locked
     
     // Modifiers
     modifier onlyCommittee() {
@@ -145,9 +154,16 @@ contract CommitteeManager {
         address _targetContract,
         bytes calldata _data
     ) external onlyCommittee returns (uint256 proposalId) {
-        if (_data.length == 0) revert EmptyProposalData();
+        
+        // do not allow setup proposals after start is locked
+        if (startLocked && _isStartOnlyAction(_actionType)) { revert StartPhaseLocked(); }
 
-        if (_actionType == ActionType.ADD_MEMBER || _actionType == ActionType.REMOVE_MEMBER) {
+         // do not allow LOCK_START again after it was already used
+        if (startLocked && _actionType == ActionType.LOCK_START) { revert StartAlreadyLocked(); }
+        
+        if (_actionType != ActionType.LOCK_START && _data.length == 0) { revert EmptyProposalData(); }
+
+        if (_actionType == ActionType.ADD_MEMBER || _actionType == ActionType.REMOVE_MEMBER || _actionType == ActionType.LOCK_START ) {
             _targetContract = address(0);
         } else {
             if (_targetContract == address(0)) revert ZeroAddress();
@@ -211,6 +227,19 @@ contract CommitteeManager {
     }
 
 
+    // check if this action is only for start phase
+    function _isStartOnlyAction(ActionType action) internal pure returns (bool) {
+        return (
+            action == ActionType.MINT_GT ||
+            action == ActionType.MINT_RT ||
+            action == ActionType.SET_GT_MINTER ||
+            action == ActionType.SET_RT_MINTER ||
+            action == ActionType.INIT_POOL ||
+            action == ActionType.GENERIC_CALL
+        );
+    }
+
+
     // Internal Execution
 
     /**
@@ -218,16 +247,23 @@ contract CommitteeManager {
      */
     function _executeProposal(uint256 _proposalId) internal {
         Proposal storage p = proposals[_proposalId];
+        ActionType action = p.actionType;
+        
+        // stop setuponly actions after start locked
+        if (startLocked && _isStartOnlyAction(action)) {
+            revert StartPhaseLocked();
+        }
+        
         p.status = ProposalStatus.Executed;
 
-        ActionType action = p.actionType;
+        
 
         // Member management actions are executed immediately within this contract
-        if (p.actionType == ActionType.ADD_MEMBER) {
+        if (action == ActionType.ADD_MEMBER) {
             address newMember = abi.decode(p.data, (address));
             _addMember(newMember);
 
-        } else if (p.actionType == ActionType.REMOVE_MEMBER) {
+        } else if (action == ActionType.REMOVE_MEMBER) {
             address target = abi.decode(p.data, (address));
             _removeMember(target);
 
@@ -258,6 +294,11 @@ contract CommitteeManager {
             _call(p.targetContract, abi.encodeWithSignature("mint(address,uint256)", to, amt));
         }
 
+        else if (action == ActionType.MINT_GT) {
+            (address to, uint256 amt) = abi.decode(p.data, (address, uint256));
+            _call(p.targetContract, abi.encodeWithSignature("mint(address,uint256)", to, amt));
+        }
+
         // Reward actions
         else if (action == ActionType.ADD_REWARD) {
             (string memory name, uint256 baseCost) = abi.decode(p.data, (string, uint256));
@@ -273,6 +314,14 @@ contract CommitteeManager {
             bytes memory callData = abi.decode(p.data, (bytes));
             _call(p.targetContract, callData);
         }
+
+
+        else if (action == ActionType.LOCK_START) {
+            if (startLocked) revert StartAlreadyLocked();
+            startLocked = true;
+            emit StartLockActivated();
+        }
+
 
         emit ProposalExecuted(_proposalId, action);
     }
