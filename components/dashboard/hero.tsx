@@ -11,7 +11,7 @@ export function Hero({ levelLabel }: { levelLabel: string }) {
         <div className="glass-orb animate-pulse-soft left-[42%] top-40 h-20 w-20" />
         <p className="text-sm uppercase tracking-[0.22em] text-[#a8d2b1]/70">Campus sustainability protocol</p>
         <h1 className="mt-6 max-w-3xl font-serif text-5xl leading-tight text-white md:text-7xl">
-          Greener habits, shared by the whole campus
+          GREENER HABITS, SHARED BY THE WHOLE CAMPUS
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-7 text-white/60">
           CampusSwap gives students a calm, welcoming place to record meaningful actions, earn recognition for
