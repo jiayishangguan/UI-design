@@ -7,6 +7,8 @@ import { Card } from "@/components/common/card";
 import { Input } from "@/components/common/input";
 import { formatDateTime, formatToken } from "@/lib/format";
 
+const TARGET_RT = 3000n;
+
 export function SwapPanel({
   feeRate,
   reserves,
@@ -41,6 +43,15 @@ export function SwapPanel({
   const bufferRt = poolStatus?.[2] ?? 0n;
   const poolK = poolStatus?.[3] ?? reserves?.[2] ?? 0n;
   const lastInjectTime = poolStatus?.[4];
+  const actualGt = actualPoolGt ?? 0n;
+  const actualRt = actualPoolRt ?? 0n;
+  const actualK = actualGt * actualRt;
+  const derivedFeeRate =
+    actualRt * 100n > TARGET_RT * 80n ? 10n :
+    actualRt * 100n >= TARGET_RT * 60n ? 30n :
+    actualRt * 100n >= TARGET_RT * 40n ? 70n :
+    actualRt > 0n ? 150n :
+    0n;
   const gtDifference = (actualPoolGt ?? 0n) - reserveGt;
   const rtDifference = (actualPoolRt ?? 0n) - reserveRt;
 
@@ -132,23 +143,23 @@ export function SwapPanel({
           <div className="mt-5 space-y-3 text-sm text-white/65">
             <div className="flex justify-between">
               <span>Actual GT in AMM contract</span>
-              <span>{formatToken(actualPoolGt)}</span>
+              <span>{formatToken(actualGt)}</span>
             </div>
             <div className="flex justify-between">
               <span>Actual RT in AMM contract</span>
-              <span>{formatToken(actualPoolRt)}</span>
+              <span>{formatToken(actualRt)}</span>
             </div>
             <div className="flex justify-between">
               <span>Current GT ledger used by AMM</span>
               <span>{formatToken(reserveGt)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Current K</span>
-              <span>{formatToken(poolK)}</span>
+              <span>Current K from actual balances</span>
+              <span>{formatToken(actualK)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Current fee</span>
-              <span>{formatToken(feeRate)} bp</span>
+              <span>Current fee from actual RT</span>
+              <span>{formatToken(derivedFeeRate)} bp</span>
             </div>
             <div className="flex justify-between">
               <span>GT difference vs reserve ledger</span>
@@ -157,6 +168,11 @@ export function SwapPanel({
             <div className="flex justify-between">
               <span>RT difference vs reserve ledger</span>
               <span>{formatToken(rtDifference)}</span>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-6 text-white/45">
+              The on-chain reserve ledger still controls official AMM pricing logic. This panel derives a live view from
+              the AMM contract's actual GT and RT balances so you can see the pool state change immediately when tokens
+              are minted or transferred into the pool address.
             </div>
           </div>
         </Card>
