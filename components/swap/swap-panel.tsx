@@ -103,12 +103,12 @@ export function SwapPanel({
       </Card>
       <div className="space-y-6">
         <Card>
-          <h2 className="font-serif text-2xl text-white">AMM Reserve Ledger</h2>
+          <h2 className="font-serif text-2xl text-white">Reserve Side</h2>
+          <p className="mt-3 text-sm leading-6 text-white/55">
+            This section focuses on reserve-side RT tracking only. It is separate from the live trading state of the
+            AMM pool.
+          </p>
           <div className="mt-5 space-y-3 text-sm text-white/65">
-            <div className="flex justify-between">
-              <span>Reserve GT</span>
-              <span>{formatToken(reserveGt)}</span>
-            </div>
             <div className="flex justify-between">
               <span>Reserve RT</span>
               <span>{formatToken(reserveRt)}</span>
@@ -118,24 +118,16 @@ export function SwapPanel({
               <span>{formatToken(bufferRt)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Current K</span>
-              <span>{formatToken(poolK)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Current fee</span>
-              <span>{formatToken(feeRate)} bp</span>
-            </div>
-            <div className="flex justify-between">
               <span>Last inject</span>
               <span>{lastInjectTime ? formatDateTime(Number(lastInjectTime) * 1000) : "—"}</span>
             </div>
           </div>
         </Card>
         <Card>
-          <h2 className="font-serif text-2xl text-white">Actual AMM Token Holdings</h2>
+          <h2 className="font-serif text-2xl text-white">Actual AMM Pool</h2>
           <p className="mt-3 text-sm leading-6 text-white/55">
-            These values are the real ERC-20 balances held by the AMM contract. They can differ from the reserve ledger
-            when governance mints or transfers tokens directly into the pool address.
+            This section shows the real trading-side balances and pricing state used by the AMM pool view. If governance
+            mints or transfers tokens directly into the AMM address, these actual balances can diverge from the reserve-only RT tracking above.
           </p>
           <div className="mt-5 space-y-3 text-sm text-white/65">
             <div className="flex justify-between">
@@ -145,6 +137,18 @@ export function SwapPanel({
             <div className="flex justify-between">
               <span>Actual RT in AMM contract</span>
               <span>{formatToken(actualPoolRt)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Current GT ledger used by AMM</span>
+              <span>{formatToken(reserveGt)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Current K</span>
+              <span>{formatToken(poolK)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Current fee</span>
+              <span>{formatToken(feeRate)} bp</span>
             </div>
             <div className="flex justify-between">
               <span>GT difference vs reserve ledger</span>
