@@ -40,3 +40,110 @@ export const ACTION_TYPE_OPTIONS = [
   { value: 11, label: "MINT_GT" },
   { value: 12, label: "LOCK_START" }
 ] as const;
+
+export const GOVERNANCE_ACTION_DETAILS = {
+  0: {
+    title: "Add a committee member",
+    description: "Add one wallet address to the committee member set.",
+    targetLabel: "CommitteeManager contract",
+    formatLabel: "Expected JSON format",
+    template: { address: "0x0000000000000000000000000000000000000000" },
+    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+  },
+  1: {
+    title: "Remove a committee member",
+    description: "Remove one wallet address from the committee member set.",
+    targetLabel: "CommitteeManager contract",
+    formatLabel: "Expected JSON format",
+    template: { address: "0x0000000000000000000000000000000000000000" },
+    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+  },
+  2: {
+    title: "Initialise the GT/RT pool",
+    description: "Seed the AMM pool with the first GT and RT reserves.",
+    targetLabel: "AMMPool contract",
+    formatLabel: "Expected JSON format",
+    template: { gtAmount: "100", rtAmount: "100" },
+    example: { gtAmount: "500", rtAmount: "500" }
+  },
+  3: {
+    title: "Inject RT buffer",
+    description: "Top up the AMM reward-token buffer with additional RT.",
+    targetLabel: "AMMPool contract",
+    formatLabel: "Expected JSON format",
+    template: { amount: "100" },
+    example: { amount: "250" }
+  },
+  4: {
+    title: "Set fee recipient",
+    description: "Reserved enum slot kept only to preserve on-chain indices. Do not use this action.",
+    targetLabel: "Reserved / disabled",
+    formatLabel: "Expected JSON format",
+    template: {},
+    example: {}
+  },
+  5: {
+    title: "Set GT minter",
+    description: "Set the GreenToken minter address.",
+    targetLabel: "GreenToken contract",
+    formatLabel: "Expected JSON format",
+    template: { address: "0x0000000000000000000000000000000000000000" },
+    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+  },
+  6: {
+    title: "Set RT minter",
+    description: "Set the RewardToken minter address.",
+    targetLabel: "RewardToken contract",
+    formatLabel: "Expected JSON format",
+    template: { address: "0x0000000000000000000000000000000000000000" },
+    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+  },
+  7: {
+    title: "Mint RT",
+    description: "Mint reward tokens to a wallet address.",
+    targetLabel: "RewardToken contract",
+    formatLabel: "Expected JSON format",
+    template: { to: "0x0000000000000000000000000000000000000000", amount: "10" },
+    example: { to: "0x1234567890abcdef1234567890abcdef12345678", amount: "30" }
+  },
+  8: {
+    title: "Add reward",
+    description: "Create a new redemption item in the reward catalogue.",
+    targetLabel: "RewardRedemption contract",
+    formatLabel: "Expected JSON format",
+    template: { name: "Coffee Voucher", baseCost: "20" },
+    example: { name: "Sandwich Voucher", baseCost: "30" }
+  },
+  9: {
+    title: "Remove reward",
+    description: "Deactivate one reward by its on-chain reward ID.",
+    targetLabel: "RewardRedemption contract",
+    formatLabel: "Expected JSON format",
+    template: { rewardId: "0" },
+    example: { rewardId: "2" }
+  },
+  10: {
+    title: "Generic call",
+    description: "Send already-encoded call data to the selected target contract. Use only for advanced actions.",
+    targetLabel: "Custom target contract",
+    formatLabel: "Expected JSON format",
+    template: { callData: "0x" },
+    example: { callData: "0x1234abcd" }
+  },
+  11: {
+    title: "Mint GT",
+    description: "Mint green tokens directly to a wallet address.",
+    targetLabel: "GreenToken contract",
+    formatLabel: "Expected JSON format",
+    template: { to: "0x0000000000000000000000000000000000000000", amount: "10" },
+    example: { to: "0x1234567890abcdef1234567890abcdef12345678", amount: "25" }
+  },
+  12: {
+    title: "Lock start",
+    description: "Run the lock-start setup action. This action does not require JSON parameters.",
+    targetLabel: "CommitteeManager contract",
+    formatLabel: "Expected JSON format",
+    template: {},
+    example: {}
+  }
+} as const;
