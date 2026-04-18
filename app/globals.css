@@ -31,6 +31,13 @@ body::before {
   scrollbar-color: rgba(121, 255, 155, 0.3) rgba(255, 255, 255, 0.05);
 }
 
+select,
+select option,
+select optgroup {
+  color: #f5fff6;
+  background-color: #0b120d;
+}
+
 .text-balance {
   text-wrap: balance;
 }
