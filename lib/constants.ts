@@ -48,15 +48,14 @@ export const ACTION_TYPE_OPTIONS = [
   { value: 1, label: "REMOVE_MEMBER" },
   { value: 2, label: "INIT_POOL" },
   { value: 3, label: "INJECT_BUFFER" },
-  { value: 4, label: "SET_FEE_RECIPIENT (Reserved)", disabled: true },
-  { value: 5, label: "SET_GT_MINTER" },
-  { value: 6, label: "SET_RT_MINTER" },
-  { value: 7, label: "MINT_RT" },
-  { value: 8, label: "ADD_REWARD" },
-  { value: 9, label: "REMOVE_REWARD" },
-  { value: 10, label: "GENERIC_CALL" },
-  { value: 11, label: "MINT_GT" },
-  { value: 12, label: "LOCK_START" }
+  { value: 4, label: "SET_GT_MINTER" },
+  { value: 5, label: "SET_RT_MINTER" },
+  { value: 6, label: "MINT_RT" },
+  { value: 7, label: "ADD_REWARD" },
+  { value: 8, label: "REMOVE_REWARD" },
+  { value: 9, label: "GENERIC_CALL" },
+  { value: 10, label: "MINT_GT" },
+  { value: 11, label: "LOCK_START" }
 ] as const;
 
 export const GOVERNANCE_ACTION_DETAILS = {
@@ -93,14 +92,6 @@ export const GOVERNANCE_ACTION_DETAILS = {
     example: { amount: "250" }
   },
   4: {
-    title: "Set fee recipient",
-    description: "Reserved enum slot kept only to preserve on-chain indices. Do not use this action.",
-    targetLabel: "Reserved / disabled",
-    formatLabel: "Expected JSON format",
-    template: {},
-    example: {}
-  },
-  5: {
     title: "Set GT minter",
     description: "Set the GreenToken minter address.",
     targetLabel: "GreenToken contract",
@@ -108,7 +99,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { address: "0x0000000000000000000000000000000000000000" },
     example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
   },
-  6: {
+  5: {
     title: "Set RT minter",
     description: "Set the RewardToken minter address.",
     targetLabel: "RewardToken contract",
@@ -116,7 +107,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { address: "0x0000000000000000000000000000000000000000" },
     example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
   },
-  7: {
+  6: {
     title: "Mint RT",
     description: "Mint reward tokens to a wallet address.",
     targetLabel: "RewardToken contract",
@@ -124,7 +115,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { to: "0x0000000000000000000000000000000000000000", amount: "10" },
     example: { to: "0x1234567890abcdef1234567890abcdef12345678", amount: "30" }
   },
-  8: {
+  7: {
     title: "Add reward",
     description: "Create a new redemption item in the reward catalogue.",
     targetLabel: "RewardRedemption contract",
@@ -132,7 +123,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { name: "Coffee Voucher", baseCost: "20" },
     example: { name: "Sandwich Voucher", baseCost: "30" }
   },
-  9: {
+  8: {
     title: "Remove reward",
     description: "Deactivate one reward by its on-chain reward ID.",
     targetLabel: "RewardRedemption contract",
@@ -140,7 +131,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { rewardId: "0" },
     example: { rewardId: "2" }
   },
-  10: {
+  9: {
     title: "Generic call",
     description: "Send already-encoded call data to the selected target contract. Use only for advanced actions.",
     targetLabel: "Custom target contract",
@@ -148,7 +139,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { callData: "0x" },
     example: { callData: "0x1234abcd" }
   },
-  11: {
+  10: {
     title: "Mint GT",
     description: "Mint green tokens directly to a wallet address.",
     targetLabel: "GreenToken contract",
@@ -156,7 +147,7 @@ export const GOVERNANCE_ACTION_DETAILS = {
     template: { to: "0x0000000000000000000000000000000000000000", amount: "10" },
     example: { to: "0x1234567890abcdef1234567890abcdef12345678", amount: "25" }
   },
-  12: {
+  11: {
     title: "Lock start",
     description: "Run the lock-start setup action. This action does not require JSON parameters.",
     targetLabel: "CommitteeManager contract",
@@ -165,3 +156,4 @@ export const GOVERNANCE_ACTION_DETAILS = {
     example: {}
   }
 } as const;
+
