@@ -1,9 +1,13 @@
 "use client";
 
+import Image from "next/image";
+import { useMemo, useState } from "react";
+
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS } from "@/lib/constants";
 import { formatRelativeCountdown } from "@/lib/format";
+import { getIpfsGatewayUrl } from "@/lib/ipfs";
 
 export function VerifierDetail({
   task,
@@ -45,6 +49,8 @@ export function VerifierDetail({
   const cooldownEnd = Number(task.timestamp) + 24 * 60 * 60;
   const votingEnd = Number(task.voteDeadline);
   const phase = nowSeconds < cooldownEnd ? "Cooldown" : nowSeconds < votingEnd ? "Voting" : "Expired";
+  const [imageFailed, setImageFailed] = useState(false);
+  const proofImageUrl = useMemo(() => getIpfsGatewayUrl(task.proofCID), [task.proofCID]);
   const voteBlockReason = hasVoted
     ? "This wallet has already voted on this task."
     : !isAssigned
@@ -61,7 +67,37 @@ export function VerifierDetail({
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
       <Card>
         <h1 className="font-serif text-4xl text-white">{task.actionType}</h1>
-        <p className="mt-3 text-white/60">Proof CID: {task.proofCID}</p>
+        {proofImageUrl && !imageFailed ? (
+          <div className="mt-6 overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
+            <div className="relative aspect-[4/3] w-full">
+              <Image
+                src={proofImageUrl}
+                alt={`Evidence for ${task.actionType}`}
+                fill
+                className="object-cover"
+                unoptimized
+                onError={() => setImageFailed(true)}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 rounded-[24px] border border-dashed border-white/10 bg-white/[0.03] px-4 py-6 text-sm text-white/45">
+            Evidence image is unavailable from the current IPFS gateway.
+          </div>
+        )}
+        <div className="mt-4 space-y-2 text-sm text-white/60">
+          <p>Proof CID: {task.proofCID}</p>
+          {proofImageUrl ? (
+            <a
+              href={proofImageUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex text-sm text-emerald-200/85 transition hover:text-emerald-100"
+            >
+              Open evidence image
+            </a>
+          ) : null}
+        </div>
         <div className="mt-8 space-y-3 text-sm text-white/60">
           <p>Governance phase: {GOVERNANCE_PHASE_LABELS[phaseId] ?? GOVERNANCE_PHASE_LABELS[0]}</p>
           <p>{GOVERNANCE_PHASE_DETAILS[phaseId] ?? GOVERNANCE_PHASE_DETAILS[0]}</p>
