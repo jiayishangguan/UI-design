@@ -34,15 +34,15 @@ export function GovernancePanel({
   onApprove: (id: number) => Promise<unknown>;
   onCancel: (id: number) => Promise<unknown>;
 }) {
-  const [actionType, setActionType] = useState("8");
+  const [actionType, setActionType] = useState("7");
   const [json, setJson] = useState("");
   const actionTypeNumber = Number(actionType);
   const actionConfig = GOVERNANCE_ACTION_DETAILS[actionTypeNumber as keyof typeof GOVERNANCE_ACTION_DETAILS];
   const target = useMemo(() => {
     if ([2, 3].includes(actionTypeNumber)) return contractAddresses.AMMPool as `0x${string}`;
-    if ([8, 9].includes(actionTypeNumber)) return contractAddresses.RewardRedemption as `0x${string}`;
-    if ([5, 11].includes(actionTypeNumber)) return contractAddresses.GreenToken as `0x${string}`;
-    if ([6, 7].includes(actionTypeNumber)) return contractAddresses.RewardToken as `0x${string}`;
+    if ([7, 8].includes(actionTypeNumber)) return contractAddresses.RewardRedemption as `0x${string}`;
+    if ([4, 10].includes(actionTypeNumber)) return contractAddresses.GreenToken as `0x${string}`;
+    if ([5, 6].includes(actionTypeNumber)) return contractAddresses.RewardToken as `0x${string}`;
     return "0x0000000000000000000000000000000000000000";
   }, [actionTypeNumber]);
 
@@ -51,8 +51,7 @@ export function GovernancePanel({
   }, [actionConfig]);
 
   const exampleJson = useMemo(() => JSON.stringify(actionConfig.example, null, 2), [actionConfig]);
-  const isReservedAction = actionTypeNumber === 4;
-  const needsJsonInput = actionTypeNumber !== 12;
+  const needsJsonInput = actionTypeNumber !== 11;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -74,7 +73,7 @@ export function GovernancePanel({
           </div>
           <Select value={actionType} onChange={(event) => setActionType(event.target.value)}>
             {ACTION_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value} disabled={Boolean("disabled" in option && option.disabled)}>
+              <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
@@ -116,17 +115,17 @@ export function GovernancePanel({
           </div>
           {actionError ? <p className="text-sm text-red-200">{actionError}</p> : null}
           <Button
-            disabled={!isCommitteeMember || isReservedAction}
+            disabled={!isCommitteeMember}
             onClick={() => {
               try {
-                const parsed = actionTypeNumber === 12 ? {} : JSON.parse(json);
+                const parsed = actionTypeNumber === 11 ? {} : JSON.parse(json);
                 onPropose({ actionType: actionTypeNumber, targetContract: target, params: parsed });
               } catch {
                 // Handled in hook state and wallet flow.
               }
             }}
           >
-            {isReservedAction ? "Reserved Action" : "Create Proposal"}
+            Create Proposal
           </Button>
         </div>
       </Card>
