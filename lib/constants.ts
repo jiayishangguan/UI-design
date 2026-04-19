@@ -58,102 +58,134 @@ export const ACTION_TYPE_OPTIONS = [
   { value: 11, label: "LOCK_START" }
 ] as const;
 
+export type GovernanceFieldConfig = {
+  key: string;
+  label: string;
+  placeholder: string;
+  input: "text" | "address" | "number" | "textarea";
+  helper?: string;
+};
+
 export const GOVERNANCE_ACTION_DETAILS = {
   0: {
     title: "Add a committee member",
     description: "Add one wallet address to the committee member set.",
     targetLabel: "CommitteeManager contract",
-    formatLabel: "Expected JSON format",
-    template: { address: "0x0000000000000000000000000000000000000000" },
-    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+    inputModeLabel: "Fill in the new member wallet",
+    defaults: { address: "" },
+    fields: [
+      { key: "address", label: "New member wallet", placeholder: "0x...", input: "address", helper: "Enter the wallet to add." }
+    ] satisfies GovernanceFieldConfig[]
   },
   1: {
     title: "Remove a committee member",
     description: "Remove one wallet address from the committee member set.",
     targetLabel: "CommitteeManager contract",
-    formatLabel: "Expected JSON format",
-    template: { address: "0x0000000000000000000000000000000000000000" },
-    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+    inputModeLabel: "Fill in the member wallet to remove",
+    defaults: { address: "" },
+    fields: [
+      { key: "address", label: "Member wallet", placeholder: "0x...", input: "address", helper: "Enter the wallet to remove." }
+    ] satisfies GovernanceFieldConfig[]
   },
   2: {
     title: "Initialise the GT/RT pool",
     description: "Seed the AMM pool with the first GT and RT reserves.",
     targetLabel: "AMMPool contract",
-    formatLabel: "Expected JSON format",
-    template: { gtAmount: "100", rtAmount: "100" },
-    example: { gtAmount: "500", rtAmount: "500" }
+    inputModeLabel: "Set the initial GT and RT reserves",
+    defaults: { gtAmount: "100", rtAmount: "100" },
+    fields: [
+      { key: "gtAmount", label: "GT amount", placeholder: "100", input: "number", helper: "Initial green-token reserve." },
+      { key: "rtAmount", label: "RT amount", placeholder: "100", input: "number", helper: "Initial reward-token reserve." }
+    ] satisfies GovernanceFieldConfig[]
   },
   3: {
     title: "Inject RT buffer",
     description: "Top up the AMM reward-token buffer with additional RT.",
     targetLabel: "AMMPool contract",
-    formatLabel: "Expected JSON format",
-    template: { amount: "100" },
-    example: { amount: "250" }
+    inputModeLabel: "Enter the RT amount to inject",
+    defaults: { amount: "100" },
+    fields: [{ key: "amount", label: "RT amount", placeholder: "250", input: "number", helper: "Additional RT to move into the buffer." }] satisfies GovernanceFieldConfig[]
   },
   4: {
     title: "Set GT minter",
     description: "Set the GreenToken minter address.",
     targetLabel: "GreenToken contract",
-    formatLabel: "Expected JSON format",
-    template: { address: "0x0000000000000000000000000000000000000000" },
-    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+    inputModeLabel: "Set the new GT minter wallet",
+    defaults: { address: "" },
+    fields: [
+      { key: "address", label: "Minter wallet", placeholder: "0x...", input: "address", helper: "This wallet will be allowed to mint GT." }
+    ] satisfies GovernanceFieldConfig[]
   },
   5: {
     title: "Set RT minter",
     description: "Set the RewardToken minter address.",
     targetLabel: "RewardToken contract",
-    formatLabel: "Expected JSON format",
-    template: { address: "0x0000000000000000000000000000000000000000" },
-    example: { address: "0x1234567890abcdef1234567890abcdef12345678" }
+    inputModeLabel: "Set the new RT minter wallet",
+    defaults: { address: "" },
+    fields: [
+      { key: "address", label: "Minter wallet", placeholder: "0x...", input: "address", helper: "This wallet will be allowed to mint RT." }
+    ] satisfies GovernanceFieldConfig[]
   },
   6: {
     title: "Mint RT",
     description: "Mint reward tokens to a wallet address.",
     targetLabel: "RewardToken contract",
-    formatLabel: "Expected JSON format",
-    template: { to: "0x0000000000000000000000000000000000000000", amount: "10" },
-    example: { to: "0x1234567890abcdef1234567890abcdef12345678", amount: "30" }
+    inputModeLabel: "Choose the recipient and amount",
+    defaults: { to: "", amount: "10" },
+    fields: [
+      { key: "to", label: "Recipient wallet", placeholder: "0x...", input: "address", helper: "Wallet that will receive RT." },
+      { key: "amount", label: "RT amount", placeholder: "30", input: "number", helper: "Whole-token amount to mint." }
+    ] satisfies GovernanceFieldConfig[]
   },
   7: {
     title: "Add reward",
     description: "Create a new redemption item in the reward catalogue.",
     targetLabel: "RewardRedemption contract",
-    formatLabel: "Expected JSON format",
-    template: { name: "Coffee Voucher", baseCost: "20" },
-    example: { name: "Sandwich Voucher", baseCost: "30" }
+    inputModeLabel: "Enter the reward name and base cost",
+    defaults: { name: "Coffee Voucher", baseCost: "20" },
+    fields: [
+      { key: "name", label: "Reward name", placeholder: "Coffee Voucher", input: "text", helper: "How the reward will appear in the catalogue." },
+      { key: "baseCost", label: "Base cost", placeholder: "20", input: "number", helper: "RT cost when reserves are at target." }
+    ] satisfies GovernanceFieldConfig[]
   },
   8: {
     title: "Remove reward",
     description: "Deactivate one reward by its on-chain reward ID.",
     targetLabel: "RewardRedemption contract",
-    formatLabel: "Expected JSON format",
-    template: { rewardId: "0" },
-    example: { rewardId: "2" }
+    inputModeLabel: "Enter the reward ID to deactivate",
+    defaults: { rewardId: "0" },
+    fields: [
+      { key: "rewardId", label: "Reward ID", placeholder: "2", input: "number", helper: "Use the on-chain reward ID." }
+    ] satisfies GovernanceFieldConfig[]
   },
   9: {
     title: "Generic call",
     description: "Send already-encoded call data to the selected target contract. Use only for advanced actions.",
     targetLabel: "Custom target contract",
-    formatLabel: "Expected JSON format",
-    template: { callData: "0x" },
-    example: { callData: "0x1234abcd" }
+    inputModeLabel: "Advanced mode",
+    defaults: { targetContract: "", callData: "0x" },
+    fields: [
+      { key: "targetContract", label: "Target contract", placeholder: "0x...", input: "address", helper: "The contract that will receive the call." },
+      { key: "callData", label: "Encoded calldata", placeholder: "0x1234abcd", input: "textarea", helper: "Already-encoded function calldata." }
+    ] satisfies GovernanceFieldConfig[]
   },
   10: {
     title: "Mint GT",
     description: "Mint green tokens directly to a wallet address.",
     targetLabel: "GreenToken contract",
-    formatLabel: "Expected JSON format",
-    template: { to: "0x0000000000000000000000000000000000000000", amount: "10" },
-    example: { to: "0x1234567890abcdef1234567890abcdef12345678", amount: "25" }
+    inputModeLabel: "Choose the recipient and amount",
+    defaults: { to: "", amount: "10" },
+    fields: [
+      { key: "to", label: "Recipient wallet", placeholder: "0x...", input: "address", helper: "Wallet that will receive GT." },
+      { key: "amount", label: "GT amount", placeholder: "25", input: "number", helper: "Whole-token amount to mint." }
+    ] satisfies GovernanceFieldConfig[]
   },
   11: {
     title: "Lock start",
     description: "Run the lock-start setup action. This action does not require JSON parameters.",
     targetLabel: "CommitteeManager contract",
-    formatLabel: "Expected JSON format",
-    template: {},
-    example: {}
+    inputModeLabel: "No extra fields required",
+    defaults: {},
+    fields: [] satisfies GovernanceFieldConfig[]
   }
 } as const;
-

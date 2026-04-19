@@ -33,6 +33,8 @@ export type GovernanceProposal = {
   hasApproved?: boolean;
   validTarget?: boolean;
   executionHint?: string;
+  summary?: string;
+  details?: Array<{ label: string; value: string }>;
   createdAt: bigint;
 };
 

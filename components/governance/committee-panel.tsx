@@ -80,6 +80,7 @@ export function CommitteePanel({
               <div key={proposal.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <p className="text-white">Proposal #{proposal.id}</p>
                 <div className="mt-3 space-y-2 text-sm text-white/60">
+                  {proposal.summary ? <p className="text-white/80">{proposal.summary}</p> : null}
                   <p>Target: {formatAddress(proposal.targetContract)}</p>
                   <p>Approvals: {proposal.approvalCount.toString()}</p>
                   <p>Created: {formatDateTime(Number(proposal.createdAt) * 1000)}</p>

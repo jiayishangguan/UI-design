@@ -28,22 +28,45 @@ export function useSubmitTask() {
     if (!publicClient) throw new Error("Public client unavailable");
 
     setSubmitting(true);
-    const draft = await createTaskDraft({
-      on_chain_task_id: null,
-      tx_hash: null,
-      block_number: null,
-      proof_cid: input.proofCID,
-      submitter_address: input.address.toLowerCase(),
-      action_type: input.actionType,
-      title: input.title,
-      description: input.description,
-      location: input.location,
-      activity_date: input.activity_date,
-      gt_reward: 5,
-      status: "submitted"
-    });
-
+    let draftId: number | null = null;
     try {
+      const linkedActivityVerification = await publicClient.readContract({
+        address: contractAddresses.VerifierManager as `0x${string}`,
+        abi: [
+          {
+            type: "function",
+            stateMutability: "view",
+            name: "activityVerification",
+            inputs: [],
+            outputs: [{ type: "address" }]
+          }
+        ],
+        functionName: "activityVerification"
+      });
+
+      if (
+        linkedActivityVerification.toLowerCase() !==
+        (contractAddresses.ActivityVerification as `0x${string}`).toLowerCase()
+      ) {
+        throw new Error("Submission is temporarily unavailable. Committee must relink VerifierManager before new activities can be submitted.");
+      }
+
+      const draft = await createTaskDraft({
+        on_chain_task_id: null,
+        tx_hash: null,
+        block_number: null,
+        proof_cid: input.proofCID,
+        submitter_address: input.address.toLowerCase(),
+        action_type: input.actionType,
+        title: input.title,
+        description: input.description,
+        location: input.location,
+        activity_date: input.activity_date,
+        gt_reward: 5,
+        status: "submitted"
+      });
+      draftId = draft.id;
+
       const simulation = await publicClient.simulateContract({
         account: input.address as `0x${string}`,
         address: contractAddresses.ActivityVerification as `0x${string}`,
@@ -81,7 +104,9 @@ export function useSubmitTask() {
 
       return { hash, receipt, task: updated };
     } catch (error) {
-      await updateTaskAfterSubmit(draft.id, { tx_hash: null, status: "submitted" });
+      if (draftId !== null) {
+        await updateTaskAfterSubmit(draftId, { tx_hash: null, status: "submitted" });
+      }
       throw new Error(getReadableContractError(error, "The submission could not be sent to the contract."));
     } finally {
       setSubmitting(false);

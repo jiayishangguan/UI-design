@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { decodeFunctionData, parseAbiItem } from "viem";
 import { usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 
 import type { GovernanceProposal } from "@/types/contracts";
@@ -8,11 +9,21 @@ import type { GovernanceProposal } from "@/types/contracts";
 import { getReadableContractError } from "@/lib/errors";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
-import { encodeProposalData, getGovernanceExecutionHint, isActionTargetValid } from "@/lib/proposal-encoder";
+import {
+  decodeProposalData,
+  encodeProposalData,
+  getGovernanceExecutionHint,
+  getProposalDisplayDetails,
+  getProposalSummary,
+  isActionTargetValid
+} from "@/lib/proposal-encoder";
 
 export function useGovernance(address?: `0x${string}`) {
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [proposalMeta, setProposalMeta] = useState<Record<number, { summary: string; details: Array<{ label: string; value: string }> }>>(
+    {}
+  );
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
   const countRead = useReadContracts({
@@ -76,6 +87,69 @@ export function useGovernance(address?: `0x${string}`) {
     query: { enabled: proposalContracts.length > 0 }
   });
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadProposalMeta() {
+      if (!publicClient || proposalCount === 0) {
+        if (active) setProposalMeta({});
+        return;
+      }
+
+      try {
+        const logs = await publicClient.getLogs({
+          address: contractAddresses.CommitteeManager as `0x${string}`,
+          event: parseAbiItem(
+            "event ProposalCreated(uint256 indexed proposalId, uint8 actionType, address indexed proposer, address indexed targetContract)"
+          ),
+          fromBlock: 0n,
+          toBlock: "latest"
+        });
+
+        const entries = await Promise.all(
+          logs.map(async (log) => {
+            if (!log.transactionHash) return null;
+
+            const transaction = await publicClient.getTransaction({ hash: log.transactionHash });
+            const decodedCall = decodeFunctionData({
+              abi: abis.CommitteeManager,
+              data: transaction.input
+            });
+
+            if (decodedCall.functionName !== "propose") return null;
+
+            const [actionType, targetContract, data] = decodedCall.args as readonly [number, `0x${string}`, `0x${string}`];
+            const params = decodeProposalData(Number(actionType), data);
+            const proposalId = Number((log as { args?: { proposalId?: bigint } }).args?.proposalId ?? -1n);
+
+            if (proposalId < 0) return null;
+
+            return [
+              proposalId,
+              {
+                summary: getProposalSummary(Number(actionType), params, targetContract),
+                details: getProposalDisplayDetails(Number(actionType), params, targetContract)
+              }
+            ] as const;
+          })
+        );
+
+        if (!active) return;
+
+        setProposalMeta(
+          Object.fromEntries(entries.filter((entry): entry is readonly [number, { summary: string; details: Array<{ label: string; value: string }> }] => Boolean(entry)))
+        );
+      } catch {
+        if (active) setProposalMeta({});
+      }
+    }
+
+    void loadProposalMeta();
+    return () => {
+      active = false;
+    };
+  }, [proposalCount, publicClient]);
+
   const proposals = useMemo<GovernanceProposal[]>(
     () => {
       const rows = proposalReads.data ?? [];
@@ -104,12 +178,14 @@ export function useGovernance(address?: `0x${string}`) {
           hasApproved: Boolean(hasApprovedEntry?.result ?? false),
           validTarget: isActionTargetValid(Number(actionType), targetContract as `0x${string}`),
           executionHint: getGovernanceExecutionHint(Number(actionType), targetContract),
+          summary: proposalMeta[Math.floor(index / 3)]?.summary,
+          details: proposalMeta[Math.floor(index / 3)]?.details,
           createdAt
         });
       }
-      return next;
+      return next.sort((left, right) => right.id - left.id);
     },
-    [proposalReads.data]
+    [proposalMeta, proposalReads.data]
   );
 
   const members = useMemo<string[]>(
@@ -172,6 +248,34 @@ export function useGovernance(address?: `0x${string}`) {
     }
   }
 
+  async function executeProposal(id: number) {
+    if (!publicClient || !address) throw new Error("A connected wallet is required.");
+    setActionError(null);
+    try {
+      const simulation = await publicClient.simulateContract({
+        account: address,
+        address: contractAddresses.CommitteeManager as `0x${string}`,
+        abi: [
+          {
+            type: "function",
+            stateMutability: "nonpayable",
+            name: "executeProposal",
+            inputs: [{ type: "uint256" }],
+            outputs: []
+          }
+        ],
+        functionName: "executeProposal",
+        args: [BigInt(id)]
+      });
+      const hash = await writeContractAsync(simulation.request);
+      return publicClient.waitForTransactionReceipt({ hash });
+    } catch (error) {
+      const readable = getReadableContractError(error, "The proposal could not be executed.");
+      setActionError(readable);
+      return null;
+    }
+  }
+
   async function cancelProposal(id: number) {
     if (!publicClient || !address) throw new Error("A connected wallet is required.");
     setActionError(null);
@@ -192,5 +296,5 @@ export function useGovernance(address?: `0x${string}`) {
     }
   }
 
-  return { ...countRead, proposals, members, approveProposal, cancelProposal, propose, pending, actionError };
+  return { ...countRead, proposals, members, approveProposal, executeProposal, cancelProposal, propose, pending, actionError };
 }

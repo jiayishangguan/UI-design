@@ -1,6 +1,11 @@
-import { encodeAbiParameters } from "viem";
+import { decodeAbiParameters, encodeAbiParameters } from "viem";
 
 import { contractAddresses } from "@/lib/contracts/addresses";
+
+function shortenHex(value: string, left = 10, right = 8) {
+  if (value.length <= left + right) return value;
+  return `${value.slice(0, left)}...${value.slice(-right)}`;
+}
 
 export function getExpectedTargetForAction(actionType: number): `0x${string}` | null {
   switch (actionType) {
@@ -101,5 +106,116 @@ export function encodeProposalData(actionType: number, params: Record<string, un
       return "0x";
     default:
       throw new Error(`Unsupported action type ${actionType}`);
+  }
+}
+
+export function decodeProposalData(actionType: number, data: `0x${string}`) {
+  switch (actionType) {
+    case 0:
+    case 1:
+    case 4:
+    case 5: {
+      const [address] = decodeAbiParameters([{ type: "address" }], data);
+      return { address };
+    }
+    case 2: {
+      const [gtAmount, rtAmount] = decodeAbiParameters([{ type: "uint256" }, { type: "uint256" }], data);
+      return { gtAmount: gtAmount.toString(), rtAmount: rtAmount.toString() };
+    }
+    case 3: {
+      const [amount] = decodeAbiParameters([{ type: "uint256" }], data);
+      return { amount: amount.toString() };
+    }
+    case 6:
+    case 10: {
+      const [to, amount] = decodeAbiParameters([{ type: "address" }, { type: "uint256" }], data);
+      return { to, amount: amount.toString() };
+    }
+    case 7: {
+      const [name, baseCost] = decodeAbiParameters([{ type: "string" }, { type: "uint256" }], data);
+      return { name, baseCost: baseCost.toString() };
+    }
+    case 8: {
+      const [rewardId] = decodeAbiParameters([{ type: "uint256" }], data);
+      return { rewardId: rewardId.toString() };
+    }
+    case 9: {
+      const [callData] = decodeAbiParameters([{ type: "bytes" }], data);
+      return { callData };
+    }
+    case 11:
+      return {};
+    default:
+      return {};
+  }
+}
+
+export function getProposalSummary(actionType: number, params: Record<string, unknown>, targetContract?: string) {
+  switch (actionType) {
+    case 0:
+      return `Add committee member ${params.address}`;
+    case 1:
+      return `Remove committee member ${params.address}`;
+    case 2:
+      return `Initialise the AMM with ${params.gtAmount} GT and ${params.rtAmount} RT`;
+    case 3:
+      return `Inject ${params.amount} RT into the AMM buffer`;
+    case 4:
+      return `Set the GT minter to ${params.address}`;
+    case 5:
+      return `Set the RT minter to ${params.address}`;
+    case 6:
+      return `Mint ${params.amount} RT to ${params.to}`;
+    case 7:
+      return `Add reward "${params.name}" with base cost ${params.baseCost}`;
+    case 8:
+      return `Deactivate reward ID ${params.rewardId}`;
+    case 9:
+      return `Generic call to ${targetContract ?? "custom target"}`;
+    case 10:
+      return `Mint ${params.amount} GT to ${params.to}`;
+    case 11:
+      return "Lock the start-phase configuration";
+    default:
+      return "Governance proposal";
+  }
+}
+
+export function getProposalDisplayDetails(actionType: number, params: Record<string, unknown>, targetContract?: string) {
+  switch (actionType) {
+    case 0:
+    case 1:
+    case 4:
+    case 5:
+      return [{ label: "Wallet", value: String(params.address ?? "—") }];
+    case 2:
+      return [
+        { label: "GT amount", value: String(params.gtAmount ?? "—") },
+        { label: "RT amount", value: String(params.rtAmount ?? "—") }
+      ];
+    case 3:
+      return [{ label: "RT amount", value: String(params.amount ?? "—") }];
+    case 6:
+    case 10:
+      return [
+        { label: "Recipient", value: String(params.to ?? "—") },
+        { label: "Amount", value: String(params.amount ?? "—") }
+      ];
+    case 7:
+      return [
+        { label: "Reward name", value: String(params.name ?? "—") },
+        { label: "Base cost", value: String(params.baseCost ?? "—") }
+      ];
+    case 8:
+      return [{ label: "Reward ID", value: String(params.rewardId ?? "—") }];
+    case 9:
+      return [
+        { label: "Target contract", value: targetContract ?? "—" },
+        { label: "Call data", value: shortenHex(String(params.callData ?? "0x"), 14, 12) }
+      ];
+    case 11:
+      return [{ label: "Action", value: "No extra parameters required" }];
+    default:
+      return [];
   }
 }
