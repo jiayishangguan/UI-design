@@ -14,8 +14,6 @@ export default function SwapPage() {
       poolStatus={swap.data?.[0]?.result as readonly [bigint, bigint, bigint, bigint, bigint] | undefined}
       remainingDailyGt={swap.data?.[3]?.result as bigint | undefined}
       immediateLimit={swap.data?.[4]?.result as bigint | undefined}
-      actualPoolGt={swap.data?.[5]?.result as bigint | undefined}
-      actualPoolRt={swap.data?.[6]?.result as bigint | undefined}
       walletGt={wallet.gtBalance.data?.value}
       walletRt={wallet.rtBalance.data?.value}
       onApprove={swap.approveToken}
