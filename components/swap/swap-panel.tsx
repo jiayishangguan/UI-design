@@ -17,6 +17,17 @@ import {
   shouldTriggerBufferInjection
 } from "@/lib/swap";
 
+function StackedPoolValue({ value }: { value: string }) {
+  const [whole = "0", decimal = "000"] = value.split(".");
+
+  return (
+    <div aria-label={value} className="mt-3 flex items-baseline">
+      <span className="font-serif text-4xl leading-[0.92] tracking-[-0.03em] text-white">{whole}</span>
+      <span className="ml-0.5 text-[0.92rem] leading-none tracking-[0.08em] text-white/56">.{decimal}</span>
+    </div>
+  );
+}
+
 export function SwapPanel({
   reserves,
   poolStatus,
@@ -50,6 +61,8 @@ export function SwapPanel({
   );
   const liveFeeRate = getDynamicFee(liveReserveRt);
   const outputTokenSymbol = direction === "GT_TO_RT" ? "RT" : "GT";
+  const liveReserveGtDisplay = formatThreeDecimals(liveReserveGt * 1000n);
+  const liveReserveRtDisplay = formatThreeDecimals(liveReserveRt * 1000n);
   const swapExplanation = getSwapExplanation({
     direction,
     amountIn: parsedAmountIn,
@@ -145,13 +158,13 @@ export function SwapPanel({
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">AMM GT</p>
-              <p className="mt-3 font-serif text-4xl text-white">{formatThreeDecimals(liveReserveGt * 1000n)}</p>
-              <p className="mt-2 text-sm text-white/45">GreenToken currently visible in the live AMM pool.</p>
+              <StackedPoolValue value={liveReserveGtDisplay} />
+              <p className="mt-3 text-sm text-white/45">GreenToken currently visible in the live AMM pool.</p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">AMM RT</p>
-              <p className="mt-3 font-serif text-4xl text-white">{formatThreeDecimals(liveReserveRt * 1000n)}</p>
-              <p className="mt-2 text-sm text-white/45">RewardToken currently visible on the tradable AMM side only.</p>
+              <StackedPoolValue value={liveReserveRtDisplay} />
+              <p className="mt-3 text-sm text-white/45">RewardToken currently visible on the tradable AMM side only.</p>
             </div>
             <div className="rounded-[24px] border border-emerald-300/15 bg-[linear-gradient(180deg,rgba(122,255,172,0.08),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">Current fee</p>
