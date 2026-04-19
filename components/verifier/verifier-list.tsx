@@ -10,12 +10,26 @@ import { Badge } from "@/components/common/badge";
 import { Card } from "@/components/common/card";
 import { EmptyState } from "@/components/common/empty-state";
 
-export function VerifierList({ tasks, phase }: { tasks: TaskRecord[]; phase?: number }) {
+type VerifierQueueItem = TaskRecord & {
+  isAssigned?: boolean;
+};
+
+export function VerifierList({
+  tasks,
+  phase,
+  isCommitteeMember,
+  isActiveVerifier
+}: {
+  tasks: VerifierQueueItem[];
+  phase?: number;
+  isCommitteeMember?: boolean;
+  isActiveVerifier?: boolean;
+}) {
   if (!tasks.length) {
     return (
       <EmptyState
-        title="No mirrored tasks"
-        description="Verifier dashboard will become useful once task drafts are stored in Supabase and tied back to on-chain task ids."
+        title="No review tasks"
+        description="There are no active on-chain tasks in the verifier queue right now."
       />
     );
   }
@@ -29,18 +43,27 @@ export function VerifierList({ tasks, phase }: { tasks: TaskRecord[]; phase?: nu
       <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
         <p className="text-white">{GOVERNANCE_PHASE_LABELS[phase ?? 0] ?? GOVERNANCE_PHASE_LABELS[0]}</p>
         <p className="mt-2">{GOVERNANCE_PHASE_DETAILS[phase ?? 0] ?? GOVERNANCE_PHASE_DETAILS[0]}</p>
+        {phase === 0 && isActiveVerifier && !isCommitteeMember ? (
+          <p className="mt-3 text-amber-100/85">
+            Your wallet is in the verifier pool, but Phase 1 still assigns committee members as reviewers until more
+            active verifiers join.
+          </p>
+        ) : null}
       </div>
       <div className="mt-8 space-y-4">
         {tasks.map((task) => (
           <Link
             key={task.id}
-            href={`/verifier/${task.on_chain_task_id ?? task.id}`}
+            href={`/verifier/${task.on_chain_task_id}`}
             className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 transition hover:border-emerald-300/20"
           >
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-white">{task.title || task.action_type}</p>
                 <p className="mt-1 text-sm text-white/50">{task.submitter_address}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-white/35">
+                  {task.isAssigned ? "Assigned to you" : "Not assigned to this wallet"}
+                </p>
               </div>
               <Badge tone={task.status === "approved" ? "success" : task.status === "rejected" ? "danger" : "warning"}>
                 {task.status}

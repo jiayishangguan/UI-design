@@ -9,6 +9,7 @@ export function VerifierDetail({
   task,
   phaseId,
   isCommitteeMember,
+  isActiveVerifier,
   isAssigned,
   hasVoted,
   actionError,
@@ -32,6 +33,7 @@ export function VerifierDetail({
   };
   phaseId: number;
   isCommitteeMember: boolean;
+  isActiveVerifier: boolean;
   isAssigned: boolean;
   hasVoted: boolean;
   actionError?: string | null;
@@ -43,6 +45,17 @@ export function VerifierDetail({
   const cooldownEnd = Number(task.timestamp) + 24 * 60 * 60;
   const votingEnd = Number(task.voteDeadline);
   const phase = nowSeconds < cooldownEnd ? "Cooldown" : nowSeconds < votingEnd ? "Voting" : "Expired";
+  const voteBlockReason = hasVoted
+    ? "This wallet has already voted on this task."
+    : !isAssigned
+      ? phaseId === 0 && isActiveVerifier && !isCommitteeMember
+        ? "Phase 1 still assigns committee members as reviewers. Joining the verifier pool alone does not unlock voting on this task yet."
+        : "This wallet is not one of the assigned reviewers for this task."
+      : phase === "Cooldown"
+        ? "Voting opens after the 24-hour cooldown."
+        : phase === "Expired"
+          ? "The standard voting window has ended. Committee replacement or finalization is now available."
+          : null;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -57,7 +70,16 @@ export function VerifierDetail({
           <p>Voting deadline: {formatRelativeCountdown(task.voteDeadline)}</p>
           <p>Approvals / Rejections: {task.approvals.toString()} / {task.rejections.toString()}</p>
           <p>Queued GT: {task.gtQueued ? "Yes" : "No"}</p>
-          <p>Your role: {isCommitteeMember ? "Committee member" : "Standard viewer"}</p>
+          <p>
+            Your role:{" "}
+            {isAssigned
+              ? "Assigned reviewer"
+              : isCommitteeMember
+                ? "Committee member"
+                : isActiveVerifier
+                  ? "Verifier pool member"
+                  : "Standard viewer"}
+          </p>
         </div>
       </Card>
       <Card>
@@ -67,6 +89,7 @@ export function VerifierDetail({
           addresses. Voting opens after the mandatory 24-hour cooldown.
         </p>
         {actionError ? <p className="mt-4 text-sm text-red-200">{actionError}</p> : null}
+        {voteBlockReason ? <p className="mt-4 text-sm text-amber-100/85">{voteBlockReason}</p> : null}
         <div className="mt-8 flex flex-wrap gap-3">
           <Button disabled={!isAssigned || hasVoted || phase !== "Voting"} onClick={() => onVote(true)}>
             Approve

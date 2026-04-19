@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 
+import { EmptyState } from "@/components/common/empty-state";
 import { VerifierDetail } from "@/components/verifier/verifier-detail";
 import { useAppWallet } from "@/hooks/use-app-wallet";
 import { abis } from "@/lib/contracts/abis";
@@ -13,7 +14,13 @@ import { getReadableContractError } from "@/lib/errors";
 export default function VerifierDetailPage() {
   const params = useParams<{ id: string }>();
   const wallet = useAppWallet();
-  const taskId = BigInt(params.id);
+  const taskId = useMemo(() => {
+    try {
+      return BigInt(params.id);
+    } catch {
+      return null;
+    }
+  }, [params.id]);
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -22,14 +29,15 @@ export default function VerifierDetailPage() {
     address: contractAddresses.ActivityVerification as `0x${string}`,
     abi: abis.ActivityVerification,
     functionName: "tasks",
-    args: [taskId]
+    args: taskId !== null ? [taskId] : undefined,
+    query: { enabled: taskId !== null }
   });
   const hasVotedRead = useReadContract({
     address: contractAddresses.ActivityVerification as `0x${string}`,
     abi: abis.ActivityVerification,
     functionName: "hasVoted",
-    args: wallet.address ? [taskId, wallet.address as `0x${string}`] : undefined,
-    query: { enabled: Boolean(wallet.address) }
+    args: wallet.address && taskId !== null ? [taskId, wallet.address as `0x${string}`] : undefined,
+    query: { enabled: Boolean(wallet.address) && taskId !== null }
   });
   const reviewerMeta = useReadContracts({
     contracts: [
@@ -42,6 +50,12 @@ export default function VerifierDetailPage() {
         address: contractAddresses.CommitteeManager as `0x${string}`,
         abi: abis.CommitteeManager,
         functionName: "isCommitteeMember",
+        args: wallet.address ? [wallet.address as `0x${string}`] : undefined
+      },
+      {
+        address: contractAddresses.VerifierManager as `0x${string}`,
+        abi: abis.VerifierManager,
+        functionName: "verifiers",
         args: wallet.address ? [wallet.address as `0x${string}`] : undefined
       }
     ],
@@ -86,7 +100,18 @@ export default function VerifierDetailPage() {
     }
   }
 
-  if (!currentTask) return null;
+  if (taskId === null) {
+    return <EmptyState title="Invalid task id" description="This verifier page was opened with an invalid task reference." />;
+  }
+
+  if (task.isError || !currentTask) {
+    return (
+      <EmptyState
+        title="Task not found"
+        description="This verifier detail page could not find a matching on-chain task. Open tasks that already have a valid on-chain task id from the verifier queue."
+      />
+    );
+  }
 
   return (
     <VerifierDetail
@@ -106,6 +131,7 @@ export default function VerifierDetailPage() {
       }}
       phaseId={Number(reviewerMeta.data?.[0]?.result ?? 0)}
       isCommitteeMember={Boolean(reviewerMeta.data?.[1]?.result)}
+      isActiveVerifier={Boolean((reviewerMeta.data?.[2]?.result as readonly unknown[] | undefined)?.[6])}
       isAssigned={isAssigned}
       hasVoted={Boolean(hasVotedRead.data)}
       actionError={actionError}

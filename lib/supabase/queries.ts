@@ -45,6 +45,8 @@ export async function getVerifierTasks() {
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
+    .not("on_chain_task_id", "is", null)
+    .eq("status", "verifying")
     .order("created_at", { ascending: false })
     .limit(24);
 
