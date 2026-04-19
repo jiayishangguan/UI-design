@@ -174,7 +174,7 @@ export function GovernancePanel({
                     {proposal.validTarget === false ? <Badge tone="danger">Target mismatch</Badge> : null}
                   </div>
                 </div>
-                <p className="mt-4 text-sm leading-6 text-white/82">{proposal.summary ?? "Proposal details are unavailable."}</p>
+                <p className="mt-4 text-sm leading-6 text-white/82">{proposal.summary}</p>
                 {proposal.details?.length ? (
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
                     {proposal.details.map((detail) => (
@@ -186,7 +186,6 @@ export function GovernancePanel({
                   </div>
                 ) : null}
                 <div className="mt-4 space-y-2 text-sm text-white/60">
-                  <p>Target: {formatAddress(proposal.targetContract)}</p>
                   <p>Proposer: {formatAddress(proposal.proposer)}</p>
                   <p>Approvals: {proposal.approvalCount.toString()}</p>
                   <p>
@@ -201,7 +200,9 @@ export function GovernancePanel({
                   </p>
                   <p>Created: {formatDateTime(Number(proposal.createdAt) * 1000)}</p>
                 </div>
-                {proposal.executionHint ? <p className="mt-3 text-sm leading-6 text-white/45">{proposal.executionHint}</p> : null}
+                {proposal.validTarget === false && proposal.executionHint ? (
+                  <p className="mt-3 text-sm leading-6 text-white/45">{proposal.executionHint}</p>
+                ) : null}
                 {proposal.hasApproved ? <p className="mt-3 text-sm text-emerald-200/80">This wallet has already approved this proposal.</p> : null}
                 <div className="mt-4 flex gap-3">
                   <Button

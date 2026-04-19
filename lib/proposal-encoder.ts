@@ -1,6 +1,7 @@
 import { decodeAbiParameters, encodeAbiParameters } from "viem";
 
 import { contractAddresses } from "@/lib/contracts/addresses";
+import { ACTION_TYPE_OPTIONS, GOVERNANCE_ACTION_DETAILS } from "@/lib/constants";
 
 function shortenHex(value: string, left = 10, right = 8) {
   if (value.length <= left + right) return value;
@@ -150,72 +151,46 @@ export function decodeProposalData(actionType: number, data: `0x${string}`) {
   }
 }
 
-export function getProposalSummary(actionType: number, params: Record<string, unknown>, targetContract?: string) {
-  switch (actionType) {
-    case 0:
-      return `Add committee member ${params.address}`;
-    case 1:
-      return `Remove committee member ${params.address}`;
-    case 2:
-      return `Initialise the AMM with ${params.gtAmount} GT and ${params.rtAmount} RT`;
-    case 3:
-      return `Inject ${params.amount} RT into the AMM buffer`;
-    case 4:
-      return `Set the GT minter to ${params.address}`;
-    case 5:
-      return `Set the RT minter to ${params.address}`;
-    case 6:
-      return `Mint ${params.amount} RT to ${params.to}`;
-    case 7:
-      return `Add reward "${params.name}" with base cost ${params.baseCost}`;
-    case 8:
-      return `Deactivate reward ID ${params.rewardId}`;
-    case 9:
-      return `Generic call to ${targetContract ?? "custom target"}`;
-    case 10:
-      return `Mint ${params.amount} GT to ${params.to}`;
-    case 11:
-      return "Lock the start-phase configuration";
-    default:
-      return "Governance proposal";
-  }
+export function getProposalDisplayName(actionType: number) {
+  return (
+    GOVERNANCE_ACTION_DETAILS[actionType as keyof typeof GOVERNANCE_ACTION_DETAILS]?.title ??
+    ACTION_TYPE_OPTIONS.find((item) => item.value === actionType)?.label ??
+    "Governance proposal"
+  );
 }
 
-export function getProposalDisplayDetails(actionType: number, params: Record<string, unknown>, targetContract?: string) {
-  switch (actionType) {
-    case 0:
-    case 1:
-    case 4:
-    case 5:
-      return [{ label: "Wallet", value: String(params.address ?? "—") }];
-    case 2:
-      return [
-        { label: "GT amount", value: String(params.gtAmount ?? "—") },
-        { label: "RT amount", value: String(params.rtAmount ?? "—") }
-      ];
-    case 3:
-      return [{ label: "RT amount", value: String(params.amount ?? "—") }];
-    case 6:
-    case 10:
-      return [
-        { label: "Recipient", value: String(params.to ?? "—") },
-        { label: "Amount", value: String(params.amount ?? "—") }
-      ];
-    case 7:
-      return [
-        { label: "Reward name", value: String(params.name ?? "—") },
-        { label: "Base cost", value: String(params.baseCost ?? "—") }
-      ];
-    case 8:
-      return [{ label: "Reward ID", value: String(params.rewardId ?? "—") }];
-    case 9:
-      return [
-        { label: "Target contract", value: targetContract ?? "—" },
-        { label: "Call data", value: shortenHex(String(params.callData ?? "0x"), 14, 12) }
-      ];
-    case 11:
-      return [{ label: "Action", value: "No extra parameters required" }];
-    default:
-      return [];
+export function getProposalDisplayFields(actionType: number, params: Record<string, unknown>) {
+  const fieldConfigs = GOVERNANCE_ACTION_DETAILS[actionType as keyof typeof GOVERNANCE_ACTION_DETAILS]?.fields ?? [];
+
+  const fields = fieldConfigs
+    .filter((field) => field.key !== "targetContract")
+    .map((field) => {
+      const rawValue = params[field.key];
+      const value =
+        typeof rawValue === "string"
+          ? rawValue
+          : rawValue === undefined || rawValue === null
+            ? ""
+            : String(rawValue);
+
+      return { label: field.label, value };
+    })
+    .filter((field) => field.value.trim().length > 0);
+
+  if (fields.length > 0) return fields;
+
+  if (actionType === 9 && params.callData) {
+    return [{ label: "Encoded calldata", value: shortenHex(String(params.callData), 14, 12) }];
   }
+
+  return [];
+}
+
+export function getFallbackProposalSummary(actionType: number) {
+  return getProposalDisplayName(actionType);
+}
+
+export function getFallbackProposalDetails(actionType: number, params?: Record<string, unknown>) {
+  if (!params) return [];
+  return getProposalDisplayFields(actionType, params);
 }

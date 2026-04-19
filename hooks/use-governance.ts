@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { decodeFunctionData, parseAbiItem } from "viem";
+import { decodeEventLog, decodeFunctionData, parseAbiItem } from "viem";
 import { usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 
 import type { GovernanceProposal } from "@/types/contracts";
@@ -12,9 +12,11 @@ import { contractAddresses } from "@/lib/contracts/addresses";
 import {
   decodeProposalData,
   encodeProposalData,
+  getFallbackProposalDetails,
+  getFallbackProposalSummary,
+  getProposalDisplayFields,
+  getProposalDisplayName,
   getGovernanceExecutionHint,
-  getProposalDisplayDetails,
-  getProposalSummary,
   isActionTargetValid
 } from "@/lib/proposal-encoder";
 
@@ -87,8 +89,48 @@ export function useGovernance(address?: `0x${string}`) {
     query: { enabled: proposalContracts.length > 0 }
   });
 
+  const proposalDataContracts = useMemo(
+    () =>
+      Array.from({ length: proposalCount }, (_, index) => ({
+        address: contractAddresses.CommitteeManager as `0x${string}`,
+        abi: [
+          {
+            type: "function",
+            stateMutability: "view",
+            name: "getProposalData",
+            inputs: [{ type: "uint256" }],
+            outputs: [{ type: "bytes" }]
+          }
+        ] as const,
+        functionName: "getProposalData" as const,
+        args: [BigInt(index)]
+      })),
+    [proposalCount]
+  );
+
+  const proposalDataReads = useReadContracts({
+    contracts: proposalDataContracts as any,
+    query: { enabled: proposalDataContracts.length > 0 }
+  });
+
   useEffect(() => {
     let active = true;
+    const proposalCreatedEvent = parseAbiItem(
+      "event ProposalCreated(uint256 indexed proposalId, uint8 actionType, address indexed proposer, address indexed targetContract)"
+    );
+    const proposeOnlyAbi = [
+      {
+        type: "function",
+        stateMutability: "nonpayable",
+        name: "propose",
+        inputs: [
+          { name: "_actionType", type: "uint8" },
+          { name: "_targetContract", type: "address" },
+          { name: "_data", type: "bytes" }
+        ],
+        outputs: [{ name: "proposalId", type: "uint256" }]
+      }
+    ] as const;
 
     async function loadProposalMeta() {
       if (!publicClient || proposalCount === 0) {
@@ -96,51 +138,71 @@ export function useGovernance(address?: `0x${string}`) {
         return;
       }
 
+      const nextMeta: Record<number, { summary: string; details: Array<{ label: string; value: string }> }> = {};
+      let createdLogsByProposalId = new Map<number, `0x${string}`>();
+
       try {
         const logs = await publicClient.getLogs({
           address: contractAddresses.CommitteeManager as `0x${string}`,
-          event: parseAbiItem(
-            "event ProposalCreated(uint256 indexed proposalId, uint8 actionType, address indexed proposer, address indexed targetContract)"
-          ),
+          event: proposalCreatedEvent,
           fromBlock: 0n,
           toBlock: "latest"
         });
 
-        const entries = await Promise.all(
-          logs.map(async (log) => {
-            if (!log.transactionHash) return null;
-
-            const transaction = await publicClient.getTransaction({ hash: log.transactionHash });
-            const decodedCall = decodeFunctionData({
-              abi: abis.CommitteeManager,
-              data: transaction.input
-            });
-
-            if (decodedCall.functionName !== "propose") return null;
-
-            const [actionType, targetContract, data] = decodedCall.args as readonly [number, `0x${string}`, `0x${string}`];
-            const params = decodeProposalData(Number(actionType), data);
-            const proposalId = Number((log as { args?: { proposalId?: bigint } }).args?.proposalId ?? -1n);
-
-            if (proposalId < 0) return null;
-
-            return [
-              proposalId,
-              {
-                summary: getProposalSummary(Number(actionType), params, targetContract),
-                details: getProposalDisplayDetails(Number(actionType), params, targetContract)
-              }
-            ] as const;
-          })
-        );
-
-        if (!active) return;
-
-        setProposalMeta(
-          Object.fromEntries(entries.filter((entry): entry is readonly [number, { summary: string; details: Array<{ label: string; value: string }> }] => Boolean(entry)))
+        createdLogsByProposalId = new Map(
+          logs
+            .map((log) => {
+              const proposalId = Number((log as { args?: { proposalId?: bigint } }).args?.proposalId ?? -1n);
+              if (proposalId < 0 || !log.transactionHash) return null;
+              return [proposalId, log.transactionHash] as const;
+            })
+            .filter((entry): entry is readonly [number, `0x${string}`] => Boolean(entry))
         );
       } catch {
-        if (active) setProposalMeta({});
+        createdLogsByProposalId = new Map();
+      }
+
+      for (let proposalId = 0; proposalId < proposalCount; proposalId += 1) {
+        try {
+          const proposalEntry = proposalReads.data?.[proposalId * 3];
+          if (!proposalEntry?.result) continue;
+
+          const [actionType, targetContract] = proposalEntry.result as readonly [number, string, string, bigint, number, bigint];
+          let data = proposalDataReads.data?.[proposalId]?.result as `0x${string}` | undefined;
+
+          if (!data) {
+            try {
+              const transactionHash = createdLogsByProposalId.get(proposalId);
+              if (!transactionHash) continue;
+
+              const transaction = await publicClient.getTransaction({ hash: transactionHash });
+              const decodedCall = decodeFunctionData({
+                abi: proposeOnlyAbi,
+                data: transaction.input
+              });
+
+              if (decodedCall.functionName !== "propose") continue;
+              data = decodedCall.args[2] as `0x${string}`;
+            } catch {
+              continue;
+            }
+          }
+
+          if (!data) continue;
+
+          const params = decodeProposalData(Number(actionType), data);
+          nextMeta[proposalId] = {
+            summary: getProposalDisplayName(Number(actionType)),
+            details: getProposalDisplayFields(Number(actionType), params)
+          };
+        } catch {
+          // Ignore per-proposal decode failures so other proposals still show their content.
+        }
+      }
+
+      if (!active) return;
+      if (active) {
+        setProposalMeta(nextMeta);
       }
     }
 
@@ -148,7 +210,7 @@ export function useGovernance(address?: `0x${string}`) {
     return () => {
       active = false;
     };
-  }, [proposalCount, publicClient]);
+  }, [proposalCount, proposalDataReads.data, proposalReads.data, publicClient]);
 
   const proposals = useMemo<GovernanceProposal[]>(
     () => {
@@ -178,8 +240,12 @@ export function useGovernance(address?: `0x${string}`) {
           hasApproved: Boolean(hasApprovedEntry?.result ?? false),
           validTarget: isActionTargetValid(Number(actionType), targetContract as `0x${string}`),
           executionHint: getGovernanceExecutionHint(Number(actionType), targetContract),
-          summary: proposalMeta[Math.floor(index / 3)]?.summary,
-          details: proposalMeta[Math.floor(index / 3)]?.details,
+          summary:
+            proposalMeta[Math.floor(index / 3)]?.summary ??
+            getFallbackProposalSummary(Number(actionType)),
+          details:
+            proposalMeta[Math.floor(index / 3)]?.details ??
+            getFallbackProposalDetails(Number(actionType)),
           createdAt
         });
       }
@@ -214,7 +280,37 @@ export function useGovernance(address?: `0x${string}`) {
         args: [input.actionType, input.targetContract, data]
       });
       const hash = await writeContractAsync(simulation.request);
-      return await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+      let createdProposalId: number | null = null;
+      for (const log of receipt.logs) {
+        try {
+          const parsed = decodeEventLog({
+            abi: abis.CommitteeManager,
+            data: log.data,
+            topics: log.topics
+          });
+          if (parsed.eventName === "ProposalCreated") {
+            createdProposalId = Number((parsed.args as unknown as { proposalId: bigint }).proposalId);
+            break;
+          }
+        } catch {
+          // Ignore unrelated logs.
+        }
+      }
+
+      if (createdProposalId !== null) {
+        const params = decodeProposalData(input.actionType, data);
+        setProposalMeta((current) => ({
+          ...current,
+          [createdProposalId!]: {
+            summary: getProposalDisplayName(input.actionType),
+            details: getProposalDisplayFields(input.actionType, params)
+          }
+        }));
+      }
+
+      return receipt;
     } catch (error) {
       const readable = getReadableContractError(error, "The proposal could not be created.");
       setActionError(readable);
