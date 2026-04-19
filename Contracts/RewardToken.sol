@@ -38,10 +38,6 @@ contract RewardToken is ERC20Burnable {
         _;
     }
 
-    //  Override openzeppelin decimals to 0, contract only generates an integer number of tokens 
-    function decimals() public pure override returns (uint8) {
-        return 0;
-    }
 
     //  The Committee has set ActivityVerification to minter
     function setMinter(address _minter) external onlyCommittee {

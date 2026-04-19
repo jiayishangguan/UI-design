@@ -37,6 +37,9 @@ contract RewardRedemption is ReentrancyGuard {
     IAMMPool public immutable ammPool;
     ICommitteeManager public immutable committeeManager;
 
+    // 18 decimal 
+    uint256 public constant UNIT = 1e18;
+   
     // Save rewards in a mapping
     mapping(uint256 => Reward) public rewards;
     uint256 public nextRewardId;

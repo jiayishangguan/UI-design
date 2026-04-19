@@ -40,10 +40,6 @@ contract GreenToken is ERC20 {
         _;
     }
 
-    // Override openzeppelin decimals to 0, contract only generates an integer number of tokens
-    function decimals() public pure override returns (uint8) {
-        return 0;
-    }
 
     // Set the ActivityVerification contract as the only minter
     function setMinter(address _minter) external onlyCommittee {

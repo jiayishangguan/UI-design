@@ -24,10 +24,13 @@ contract VerifierManager is ReentrancyGuard {
     error AlreadySet();   
     error InvalidAddress();
     error ActiveTasksPending(); //cannot exit while assigned to pending tasks
-
-    uint256 public constant VERIFIER_THRESHOLD = 100 ; // threshold
-    uint256 public constant STAKE_AMOUNT = 100 ;      // Pledge amount
-    uint256 public constant MIN_STAKE = 80; //below this could not be verifier
+    
+    // 18 decimal 
+    uint256 public constant UNIT = 1e18;
+    
+    uint256 public constant VERIFIER_THRESHOLD = 100 * UNIT; // threshold
+    uint256 public constant STAKE_AMOUNT = 100 * UNIT;      // Pledge amount
+    uint256 public constant MIN_STAKE = 80 * UNIT; //below this could not be verifier
     uint256 public constant MAX_CONSECUTIVE = 3;           // continuously select upper limit
     uint256 public constant COOLDOWN_ROUNDS = 2;            // cooldown rounds
     uint256 public constant SUSPENSION_DURATION = 3 days;  // suspension duration

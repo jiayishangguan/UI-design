@@ -87,13 +87,16 @@ contract AMMPool is ReentrancyGuard {
     // 10000 bp = 100%
     uint256 public constant BASIS_POINTS = 10000;
 
+    //  18 decimals
+    uint256 public constant UNIT = 1e18;
+
     // Version C update
-    uint256 public constant MAX_SWAP_PER_USER = 50 ; // one user can only swap 50 gt one day
+    uint256 public constant MAX_SWAP_PER_USER = 50 * UNIT ; // one user can only swap 50 gt one day
     uint256 public constant MAX_SWAP_PROPORTION = 4000; // 40% of user holdings in basis points
-    uint256 public constant TARGET_RT = 3000 ; // target RT reserve
+    uint256 public constant TARGET_RT = 3000 * UNIT; // target RT reserve
     uint256 public constant INJECT_TRIGGER = 4000; // trigger inject when reserveRT is below 40% of target
-    uint256 public constant BUFFER_SIZE = 3600 ; // buffer can hold at most 3600 RT
-    uint256 public constant BUFFER_ALERT = 900 ; // alert
+    uint256 public constant BUFFER_SIZE = 3600 * UNIT; // buffer can hold at most 3600 RT
+    uint256 public constant BUFFER_ALERT = 900 * UNIT; // alert
     uint256 public constant COOLDOWN_INJECT = 1 days; // wait 24 hours between inject actions
     
 

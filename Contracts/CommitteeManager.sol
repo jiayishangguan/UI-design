@@ -25,7 +25,6 @@ contract CommitteeManager {
     error EmptyProposalData();
     error ProposalNotFound();
     error ExecutionFailed();
-    error ApprovalThresholdNotMet();
     error StartPhaseLocked();   // setup is locked, cannot do this now
     error StartAlreadyLocked(); // setup was already locked
     
@@ -106,7 +105,6 @@ contract CommitteeManager {
     );
 
     event ProposalExecuted(uint256 indexed proposalId, ActionType actionType);
-    event ProposalExecutionFailed(uint256 indexed proposalId, ActionType actionType, bytes reason);
     event ProposalCancelled(uint256 indexed proposalId, address indexed canceller);
 
     event StartLockActivated();  // setup is locked
@@ -207,24 +205,8 @@ contract CommitteeManager {
 
         // Attempt automatic execution if threshold is reached
         if (p.approvalCount >= approvalThreshold) {
-            _attemptExecuteProposal(_proposalId);
+            _executeProposal(_proposalId);
         }
-    }
-
-    /**
-     * @notice Retry execution for a proposal that already reached the approval threshold
-     * @dev Useful when the final approving transaction used to fail because the target contract preconditions were not met yet.
-     */
-    function executeProposal(uint256 _proposalId) external onlyCommittee {
-        if (_proposalId >= proposalCount) revert ProposalNotFound();
-
-        Proposal storage p = proposals[_proposalId];
-
-        if (p.status != ProposalStatus.Pending) revert ProposalNotPending();
-        if (block.timestamp > p.createdAt + PROPOSAL_TTL) revert ProposalExpired();
-        if (p.approvalCount < approvalThreshold) revert ApprovalThresholdNotMet();
-
-        _attemptExecuteProposal(_proposalId);
     }
 
     /**
@@ -271,6 +253,10 @@ contract CommitteeManager {
             revert StartPhaseLocked();
         }
         
+        p.status = ProposalStatus.Executed;
+
+        
+
         // Member management actions are executed immediately within this contract
         if (action == ActionType.ADD_MEMBER) {
             address newMember = abi.decode(p.data, (address));
@@ -335,27 +321,8 @@ contract CommitteeManager {
             emit StartLockActivated();
         }
 
-        p.status = ProposalStatus.Executed;
 
         emit ProposalExecuted(_proposalId, action);
-    }
-
-    function _attemptExecuteProposal(uint256 _proposalId) internal {
-        Proposal storage p = proposals[_proposalId];
-
-        try this.executeApprovedProposal(_proposalId) {
-            // execution succeeded
-        } catch (bytes memory reason) {
-            emit ProposalExecutionFailed(_proposalId, p.actionType, reason);
-        }
-    }
-
-    /**
-     * @dev External self-call wrapper so execution failures can be caught without reverting the approver transaction.
-     */
-    function executeApprovedProposal(uint256 _proposalId) external {
-        if (msg.sender != address(this)) revert ExecutionFailed();
-        _executeProposal(_proposalId);
     }
 
     /**
@@ -455,14 +422,6 @@ contract CommitteeManager {
      */
     function hasApproved(uint256 _proposalId, address _member) external view returns (bool) {
         return proposals[_proposalId].hasApproved[_member];
-    }
-
-    /**
-     * @notice Returns the encoded proposal calldata for frontend decoding and detail display
-     */
-    function getProposalData(uint256 _proposalId) external view returns (bytes memory) {
-        if (_proposalId >= proposalCount) revert ProposalNotFound();
-        return proposals[_proposalId].data;
     }
 
     /**

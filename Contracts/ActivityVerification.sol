@@ -104,12 +104,16 @@ contract ActivityVerification is ReentrancyGuard {
     // Track verifier slots where committee stepped in after deadline
     mapping(uint256 => mapping(address => bool)) public wasReplaced;
 
+
+    //  18 decimals
+    uint256 public constant UNIT = 1e18;
+
     // System parameters for verification, incentives, penalties, and constraints
-    uint256 public constant verifierReward = 1;      // +1 RT
-    uint256 public constant verifierPenalty = 5;     // -5 GT
-    uint256 public constant inactivityPenalty = 2;   // -2 GT
-    uint256 public constant dailyMintCap = 300;      // 300 GT/day
-    uint256 public constant avgGTperTask = 5;        // 5 GT/task
+    uint256 public constant verifierReward = 1* UNIT;      // +1 RT
+    uint256 public constant verifierPenalty = 5* UNIT;     // -5 GT
+    uint256 public constant inactivityPenalty = 2* UNIT;   // -2 GT
+    uint256 public constant dailyMintCap = 300* UNIT;      // 300 GT/day
+    uint256 public constant avgGTperTask = 5* UNIT;        // 5 GT/task
     uint256 public constant maxTasksPerDay = 60;     // 60 tasks/day
     uint256 public constant userTaskLimit = 2;       // 2 submissions/day/user
     uint256 public constant verifierTaskLimit = 8;   // 8 reviews/day/verifier
