@@ -174,7 +174,8 @@ contract CommitteeManager {
         p.targetContract = _targetContract;
         p.data = _data;
         p.proposer = msg.sender;
-        p.approvalCount = 0;
+        p.hasApproved[msg.sender] = true; // proposer is automatically counted as the first approval
+        p.approvalCount = 1;
         p.status = ProposalStatus.Pending;
         p.createdAt = block.timestamp;
 
