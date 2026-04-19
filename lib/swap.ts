@@ -58,6 +58,7 @@ export function getEstimatedOutput(
   if (amountIn <= 0n) {
     return {
       amountOut: 0n,
+      amountOutMilli: 0n,
       feeRate: getDynamicFee(reserveRt),
       effectiveReserveGt: reserveGt,
       effectiveReserveRt: reserveRt,
@@ -75,6 +76,7 @@ export function getEstimatedOutput(
   if (reserveIn <= 0n || reserveOut <= 0n) {
     return {
       amountOut: 0n,
+      amountOutMilli: 0n,
       feeRate: getDynamicFee(injectedState.reserveRt),
       effectiveReserveGt: injectedState.reserveGt,
       effectiveReserveRt: injectedState.reserveRt,
@@ -87,15 +89,23 @@ export function getEstimatedOutput(
   const amountInWithFee = amountIn * (BASIS_POINTS - feeRate);
   const denominator = reserveIn * BASIS_POINTS + amountInWithFee;
   const amountOut = denominator > 0n ? (amountInWithFee * reserveOut) / denominator : 0n;
+  const amountOutMilli = denominator > 0n ? (amountInWithFee * reserveOut * 1000n) / denominator : 0n;
 
   return {
     amountOut,
+    amountOutMilli,
     feeRate,
     effectiveReserveGt: injectedState.reserveGt,
     effectiveReserveRt: injectedState.reserveRt,
     effectiveBufferRt: injectedState.bufferRt,
     injectedRt: injectedState.injectedRt
   };
+}
+
+export function formatThreeDecimals(value: bigint) {
+  const whole = value / 1000n;
+  const fraction = value % 1000n;
+  return `${whole.toString()}.${fraction.toString().padStart(3, "0")}`;
 }
 
 export function getSwapExplanation({
@@ -117,10 +127,13 @@ export function getSwapExplanation({
     return "Estimated using current pool ratio, dynamic fee, and live AMM reserves.";
   }
 
-  const pairText = direction === "GT_TO_RT" ? `GT/RT reserves ${reserveGt}/${reserveRt}` : `RT/GT reserves ${reserveRt}/${reserveGt}`;
+  const pairText =
+    direction === "GT_TO_RT"
+      ? `GT/RT reserves ${formatThreeDecimals(reserveGt * 1000n)}/${formatThreeDecimals(reserveRt * 1000n)}`
+      : `RT/GT reserves ${formatThreeDecimals(reserveRt * 1000n)}/${formatThreeDecimals(reserveGt * 1000n)}`;
   const injectionText =
     direction === "GT_TO_RT" && injectedRt > 0n
-      ? ` Buffer support would inject ${injectedRt} RT before pricing because live AMM RT is at the 1200 trigger.`
+      ? ` Buffer support would inject ${formatThreeDecimals(injectedRt * 1000n)} RT before pricing because live AMM RT is at the 1200 trigger.`
       : "";
 
   return `Output = input × current swap rate × (1 - fee). Using ${pairText} with a dynamic fee of ${feeRate} bp.${injectionText}`;

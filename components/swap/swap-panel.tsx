@@ -5,11 +5,11 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 import { Input } from "@/components/common/input";
-import { formatToken } from "@/lib/format";
 import {
   BUFFER_INJECTION_TRIGGER_RT,
   BUFFER_TARGET_RT,
   TARGET_RT,
+  formatThreeDecimals,
   getDynamicFee,
   getEstimatedOutput,
   getSwapExplanation,
@@ -80,21 +80,21 @@ export function SwapPanel({
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_40px_rgba(0,0,0,0.2)]">
             <p className="text-xs uppercase tracking-[0.18em] text-white/40">Your GT balance</p>
-            <p className="mt-2 font-serif text-3xl text-white">{formatToken(walletGt)}</p>
+            <p className="mt-2 font-serif text-3xl text-white">{formatThreeDecimals((walletGt ?? 0n) * 1000n)}</p>
           </div>
           <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_40px_rgba(0,0,0,0.2)]">
             <p className="text-xs uppercase tracking-[0.18em] text-white/40">Your RT balance</p>
-            <p className="mt-2 font-serif text-3xl text-white">{formatToken(walletRt)}</p>
+            <p className="mt-2 font-serif text-3xl text-white">{formatThreeDecimals((walletRt ?? 0n) * 1000n)}</p>
           </div>
         </div>
         <div className="mt-6 space-y-4">
           <Input value={amountIn} onChange={(event) => setAmountIn(event.target.value)} placeholder="Amount in" />
           <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_18px_40px_rgba(0,0,0,0.2)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">You will receive</p>
-            <p className="mt-2 font-serif text-3xl text-white">
-              {formatToken(estimate.amountOut)} {outputTokenSymbol}
-            </p>
-          </div>
+              <p className="text-xs uppercase tracking-[0.18em] text-white/40">You will receive</p>
+              <p className="mt-2 font-serif text-3xl text-white">
+              {formatThreeDecimals(estimate.amountOutMilli)} {outputTokenSymbol}
+              </p>
+            </div>
           <p className="px-1 text-sm leading-6 text-white/45">{swapExplanation}</p>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
@@ -145,17 +145,17 @@ export function SwapPanel({
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">AMM GT</p>
-              <p className="mt-3 font-serif text-4xl text-white">{formatToken(liveReserveGt)}</p>
+              <p className="mt-3 font-serif text-4xl text-white">{formatThreeDecimals(liveReserveGt * 1000n)}</p>
               <p className="mt-2 text-sm text-white/45">GreenToken currently visible in the live AMM pool.</p>
             </div>
             <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">AMM RT</p>
-              <p className="mt-3 font-serif text-4xl text-white">{formatToken(liveReserveRt)}</p>
+              <p className="mt-3 font-serif text-4xl text-white">{formatThreeDecimals(liveReserveRt * 1000n)}</p>
               <p className="mt-2 text-sm text-white/45">RewardToken currently visible on the tradable AMM side only.</p>
             </div>
             <div className="rounded-[24px] border border-emerald-300/15 bg-[linear-gradient(180deg,rgba(122,255,172,0.08),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">Current fee</p>
-              <p className="mt-3 font-serif text-4xl text-white">{formatToken(liveFeeRate)} bp</p>
+              <p className="mt-3 font-serif text-4xl text-white">{liveFeeRate.toString()} bp</p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
                 <div
                   className="h-full rounded-full bg-[linear-gradient(90deg,rgba(118,255,170,0.85),rgba(120,209,255,0.85))] transition-all duration-700"
@@ -172,11 +172,11 @@ export function SwapPanel({
           <div className="mt-5 space-y-3 text-sm text-white/65">
             <div className="flex justify-between">
               <span>Remaining daily GT</span>
-              <span>{remainingDailyGt?.toString() ?? "0"}</span>
+              <span>{formatThreeDecimals((remainingDailyGt ?? 0n) * 1000n)}</span>
             </div>
             <div className="flex justify-between">
               <span>Immediate limit</span>
-              <span>{immediateLimit?.toString() ?? "0"}</span>
+              <span>{formatThreeDecimals((immediateLimit ?? 0n) * 1000n)}</span>
             </div>
           </div>
         </Card>
@@ -189,7 +189,7 @@ export function SwapPanel({
             <p>40-60%: 70 bp</p>
             <p>{"<"}40%: 150 bp</p>
             <p className="pt-2 text-white/45">
-              Buffer support stays locked until live AMM RT reaches {formatToken(BUFFER_INJECTION_TRIGGER_RT)} RT, then reserve support can inject toward the {formatToken(TARGET_RT)} RT target.
+              Buffer support stays locked until live AMM RT reaches {formatThreeDecimals(BUFFER_INJECTION_TRIGGER_RT * 1000n)} RT, then reserve support can inject toward the {formatThreeDecimals(TARGET_RT * 1000n)} RT target.
             </p>
           </div>
         </Card>
@@ -211,16 +211,16 @@ export function SwapPanel({
           <div className="mt-6 grid gap-4 md:grid-cols-[1fr_0.8fr]">
             <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_36px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.18em] text-white/40">Buffer RT</p>
-              <p className="mt-3 font-serif text-4xl text-white">{formatToken(bufferRt)}</p>
+              <p className="mt-3 font-serif text-4xl text-white">{formatThreeDecimals(bufferRt * 1000n)}</p>
               <p className="mt-3 text-sm leading-6 text-white/45">
-                Locked reserve support held outside the tradable AMM balance. Buffer capacity targets {formatToken(BUFFER_TARGET_RT)} RT.
+                Locked reserve support held outside the tradable AMM balance. Buffer capacity targets {formatThreeDecimals(BUFFER_TARGET_RT * 1000n)} RT.
               </p>
             </div>
             <div className="grid gap-3">
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-white/40">Trigger</p>
                 <p className="mt-2 text-sm leading-6 text-white/65">
-                  Support activates only when live AMM RT falls to {formatToken(BUFFER_INJECTION_TRIGGER_RT)} RT.
+                  Support activates only when live AMM RT falls to {formatThreeDecimals(BUFFER_INJECTION_TRIGGER_RT * 1000n)} RT.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
