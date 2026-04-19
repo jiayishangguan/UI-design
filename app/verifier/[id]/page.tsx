@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 
@@ -10,6 +10,8 @@ import { useAppWallet } from "@/hooks/use-app-wallet";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
 import { getReadableContractError } from "@/lib/errors";
+import { getTaskByOnChainId } from "@/lib/supabase/queries";
+import type { TaskRecord } from "@/types/database";
 
 export default function VerifierDetailPage() {
   const params = useParams<{ id: string }>();
@@ -24,6 +26,7 @@ export default function VerifierDetailPage() {
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
   const [actionError, setActionError] = useState<string | null>(null);
+  const [mirroredTask, setMirroredTask] = useState<TaskRecord | null>(null);
 
   const task = useReadContract({
     address: contractAddresses.ActivityVerification as `0x${string}`,
@@ -84,6 +87,31 @@ export default function VerifierDetailPage() {
     return Boolean(wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase()));
   }, [currentTask, wallet.address]);
 
+  useEffect(() => {
+    let active = true;
+
+    if (taskId === null) {
+      setMirroredTask(null);
+      return;
+    }
+
+    getTaskByOnChainId(Number(taskId))
+      .then((taskRecord) => {
+        if (active) {
+          setMirroredTask(taskRecord);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setMirroredTask(null);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [taskId]);
+
   async function wait(hash: `0x${string}`) {
     if (!publicClient) throw new Error("Public client unavailable");
     return publicClient.waitForTransactionReceipt({ hash });
@@ -129,6 +157,7 @@ export default function VerifierDetailPage() {
         verifiers: currentTask[11] as readonly string[],
         verifierCount: Number(currentTask[12])
       }}
+      mirroredTask={mirroredTask}
       phaseId={Number(reviewerMeta.data?.[0]?.result ?? 0)}
       isCommitteeMember={Boolean(reviewerMeta.data?.[1]?.result)}
       isActiveVerifier={Boolean((reviewerMeta.data?.[2]?.result as readonly unknown[] | undefined)?.[6])}

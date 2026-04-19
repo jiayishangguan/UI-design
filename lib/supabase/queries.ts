@@ -53,3 +53,14 @@ export async function getVerifierTasks() {
   if (error) throw error;
   return (data ?? []) as TaskRecord[];
 }
+
+export async function getTaskByOnChainId(taskId: number) {
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("on_chain_task_id", taskId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data ?? null) as TaskRecord | null;
+}

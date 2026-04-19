@@ -11,6 +11,7 @@ import { getIpfsGatewayUrl } from "@/lib/ipfs";
 
 export function VerifierDetail({
   task,
+  mirroredTask,
   phaseId,
   isCommitteeMember,
   isActiveVerifier,
@@ -35,6 +36,13 @@ export function VerifierDetail({
     verifiers: readonly string[];
     verifierCount: number;
   };
+  mirroredTask?: {
+    title: string | null;
+    description: string | null;
+    location: string | null;
+    activity_date: string | null;
+    proof_cid: string;
+  } | null;
   phaseId: number;
   isCommitteeMember: boolean;
   isActiveVerifier: boolean;
@@ -49,8 +57,9 @@ export function VerifierDetail({
   const cooldownEnd = Number(task.timestamp) + 24 * 60 * 60;
   const votingEnd = Number(task.voteDeadline);
   const phase = nowSeconds < cooldownEnd ? "Cooldown" : nowSeconds < votingEnd ? "Voting" : "Expired";
+  const displayProofCID = mirroredTask?.proof_cid || task.proofCID;
   const [imageFailed, setImageFailed] = useState(false);
-  const proofImageUrl = useMemo(() => getIpfsGatewayUrl(task.proofCID), [task.proofCID]);
+  const proofImageUrl = useMemo(() => getIpfsGatewayUrl(displayProofCID), [displayProofCID]);
   const voteBlockReason = hasVoted
     ? "This wallet has already voted on this task."
     : !isAssigned
@@ -66,7 +75,8 @@ export function VerifierDetail({
   return (
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
       <Card>
-        <h1 className="font-serif text-4xl text-white">{task.actionType}</h1>
+        <h1 className="font-serif text-4xl text-white">{mirroredTask?.title || task.actionType}</h1>
+        {mirroredTask?.description ? <p className="mt-3 text-white/60">{mirroredTask.description}</p> : null}
         {proofImageUrl && !imageFailed ? (
           <div className="mt-6 overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
             <div className="relative aspect-[4/3] w-full">
@@ -86,7 +96,9 @@ export function VerifierDetail({
           </div>
         )}
         <div className="mt-4 space-y-2 text-sm text-white/60">
-          <p>Proof CID: {task.proofCID}</p>
+          <p>Proof CID: {displayProofCID}</p>
+          {mirroredTask?.location ? <p>Location: {mirroredTask.location}</p> : null}
+          {mirroredTask?.activity_date ? <p>Activity date: {mirroredTask.activity_date}</p> : null}
           {proofImageUrl ? (
             <a
               href={proofImageUrl}
