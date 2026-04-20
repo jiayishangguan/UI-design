@@ -1,11 +1,24 @@
-import { decodeAbiParameters, encodeAbiParameters } from "viem";
+import { decodeAbiParameters, encodeAbiParameters, formatUnits, parseUnits } from "viem";
 
 import { contractAddresses } from "@/lib/contracts/addresses";
 import { ACTION_TYPE_OPTIONS, GOVERNANCE_ACTION_DETAILS } from "@/lib/constants";
+import { TOKEN_DECIMALS } from "@/lib/format";
 
 function shortenHex(value: string, left = 10, right = 8) {
   if (value.length <= left + right) return value;
   return `${value.slice(0, left)}...${value.slice(-right)}`;
+}
+
+function parseGovernanceTokenAmount(value: unknown) {
+  return parseUnits(String(value ?? "0"), TOKEN_DECIMALS);
+}
+
+function formatGovernanceTokenAmount(value: bigint) {
+  return formatUnits(value, TOKEN_DECIMALS);
+}
+
+function quote(value: string) {
+  return `"${value}"`;
 }
 
 export function getExpectedTargetForAction(actionType: number): `0x${string}` | null {
@@ -84,20 +97,20 @@ export function encodeProposalData(actionType: number, params: Record<string, un
     case 2:
       return encodeAbiParameters(
         [{ type: "uint256" }, { type: "uint256" }],
-        [BigInt(params.gtAmount as string), BigInt(params.rtAmount as string)]
+        [parseGovernanceTokenAmount(params.gtAmount), parseGovernanceTokenAmount(params.rtAmount)]
       );
     case 3:
-      return encodeAbiParameters([{ type: "uint256" }], [BigInt(params.amount as string)]);
+      return encodeAbiParameters([{ type: "uint256" }], [parseGovernanceTokenAmount(params.amount)]);
     case 6:
     case 10:
       return encodeAbiParameters(
         [{ type: "address" }, { type: "uint256" }],
-        [params.to as `0x${string}`, BigInt(params.amount as string)]
+        [params.to as `0x${string}`, parseGovernanceTokenAmount(params.amount)]
       );
     case 7:
       return encodeAbiParameters(
         [{ type: "string" }, { type: "uint256" }],
-        [String(params.name ?? ""), BigInt(params.baseCost as string)]
+        [String(params.name ?? ""), parseGovernanceTokenAmount(params.baseCost)]
       );
     case 8:
       return encodeAbiParameters([{ type: "uint256" }], [BigInt(params.rewardId as string)]);
@@ -121,20 +134,20 @@ export function decodeProposalData(actionType: number, data: `0x${string}`) {
     }
     case 2: {
       const [gtAmount, rtAmount] = decodeAbiParameters([{ type: "uint256" }, { type: "uint256" }], data);
-      return { gtAmount: gtAmount.toString(), rtAmount: rtAmount.toString() };
+      return { gtAmount: formatGovernanceTokenAmount(gtAmount), rtAmount: formatGovernanceTokenAmount(rtAmount) };
     }
     case 3: {
       const [amount] = decodeAbiParameters([{ type: "uint256" }], data);
-      return { amount: amount.toString() };
+      return { amount: formatGovernanceTokenAmount(amount) };
     }
     case 6:
     case 10: {
       const [to, amount] = decodeAbiParameters([{ type: "address" }, { type: "uint256" }], data);
-      return { to, amount: amount.toString() };
+      return { to, amount: formatGovernanceTokenAmount(amount) };
     }
     case 7: {
       const [name, baseCost] = decodeAbiParameters([{ type: "string" }, { type: "uint256" }], data);
-      return { name, baseCost: baseCost.toString() };
+      return { name, baseCost: formatGovernanceTokenAmount(baseCost) };
     }
     case 8: {
       const [rewardId] = decodeAbiParameters([{ type: "uint256" }], data);
@@ -184,6 +197,41 @@ export function getProposalDisplayFields(actionType: number, params: Record<stri
   }
 
   return [];
+}
+
+export function getProposalDetailText(
+  actionType: number,
+  params: Record<string, unknown>,
+  targetContract?: string
+) {
+  switch (actionType) {
+    case 0:
+      return `Add new member ${quote(String(params.address ?? ""))} to committee member list.`;
+    case 1:
+      return `Remove member ${quote(String(params.address ?? ""))} from committee member list.`;
+    case 2:
+      return `Initialize the AMM pool with ${String(params.gtAmount ?? "0")} GT and ${String(params.rtAmount ?? "0")} RT.`;
+    case 3:
+      return `Inject ${String(params.amount ?? "0")} RT into the AMM buffer reserve.`;
+    case 4:
+      return `Set GreenToken minter to wallet ${quote(String(params.address ?? ""))}.`;
+    case 5:
+      return `Set RewardToken minter to wallet ${quote(String(params.address ?? ""))}.`;
+    case 6:
+      return `Mint ${String(params.amount ?? "0")} RT to wallet ${quote(String(params.to ?? ""))}.`;
+    case 7:
+      return `Add new reward ${quote(String(params.name ?? ""))}. The base cost is ${String(params.baseCost ?? "0")} RT.`;
+    case 8:
+      return `Remove reward with reward ID ${String(params.rewardId ?? "0")} from the reward catalogue.`;
+    case 9:
+      return `Apply the following change to target contract ${quote(targetContract ?? String(params.targetContract ?? ""))}: ${String(params.callData ?? "0x")}.`;
+    case 10:
+      return `Mint ${String(params.amount ?? "0")} GT to wallet ${quote(String(params.to ?? ""))}.`;
+    case 11:
+      return "Lock the governance start configuration so setup-only actions can no longer be executed.";
+    default:
+      return "";
+  }
 }
 
 export function getFallbackProposalSummary(actionType: number) {
