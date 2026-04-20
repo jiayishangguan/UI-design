@@ -6,6 +6,7 @@ import { usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
+import { TOKEN_DECIMALS } from "@/lib/format";
 
 export function useVerifierPool(address?: `0x${string}`) {
   const [pending, setPending] = useState(false);
@@ -61,11 +62,12 @@ export function useVerifierPool(address?: `0x${string}`) {
 
   async function approveStake() {
     if (!publicClient) throw new Error("Public client unavailable");
+    const stakeAmount = (reads.data?.[1]?.result as bigint | undefined) ?? parseUnits("100", TOKEN_DECIMALS);
     const hash = await writeContractAsync({
       address: contractAddresses.GreenToken as `0x${string}`,
       abi: abis.GreenToken,
       functionName: "approve",
-      args: [contractAddresses.VerifierManager as `0x${string}`, parseUnits("100", 0)]
+      args: [contractAddresses.VerifierManager as `0x${string}`, stakeAmount]
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     await reads.refetch();
