@@ -6,6 +6,7 @@ import { usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
+import { TOKEN_DECIMALS } from "@/lib/format";
 
 export function useSwap(address?: `0x${string}`) {
   const [pending, setPending] = useState(false);
@@ -71,7 +72,7 @@ export function useSwap(address?: `0x${string}`) {
       functionName: "approve",
       args: [
         contractAddresses.AMMPool as `0x${string}`,
-        parseUnits(amount || "0", 0)
+        parseUnits(amount || "0", TOKEN_DECIMALS)
       ]
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -87,7 +88,7 @@ export function useSwap(address?: `0x${string}`) {
         address: contractAddresses.AMMPool as `0x${string}`,
         abi: abis.AMMPool,
         functionName: direction === "GT_TO_RT" ? "swapGTforRT" : "swapRTforGT",
-        args: [parseUnits(amountIn || "0", 0), parseUnits(minOut || "0", 0)]
+        args: [parseUnits(amountIn || "0", TOKEN_DECIMALS), parseUnits(minOut || "0", TOKEN_DECIMALS)]
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       await reads.refetch();
