@@ -77,6 +77,12 @@ export function VerifierDetail({
         : phase === "Expired"
           ? "The standard voting window has ended. Committee replacement or finalization is now available."
           : null;
+  const votingIntro =
+    phaseId === 0
+      ? `Phase 1 is active. Committee wallets can review activities only when they are one of the assigned reviewer addresses. Voting opens after the mandatory ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and stays open for ${Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.`
+      : phaseId === 1
+        ? `Phase 2 is active. Committee and eligible verifier-pool wallets can appear in the assigned reviewer set. Voting opens after the mandatory ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and stays open for ${Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.`
+        : `Phase 3 is active. Activity review now runs through the verifier pool only. Voting opens after the mandatory ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and stays open for ${Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.`;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -138,11 +144,12 @@ export function VerifierDetail({
       </Card>
       <Card>
         <h2 className="font-serif text-3xl text-white">Voting Controls</h2>
-        <p className="mt-3 text-white/55">
-          In Phase 1, committee wallets can still review activities only when they are one of the assigned reviewer
-          addresses. Voting opens after the mandatory {Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and
-          stays open for {Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.
-        </p>
+        <p className="mt-3 text-white/55">{votingIntro}</p>
+        {isCommitteeMember ? (
+          <p className="mt-4 text-sm text-emerald-100/70">
+            You are a committee member, so you can help complete missing votes for reviewers who have not voted yet.
+          </p>
+        ) : null}
         {actionError ? <p className="mt-4 text-sm text-red-200">{actionError}</p> : null}
         {voteBlockReason ? <p className="mt-4 text-sm text-amber-100/85">{voteBlockReason}</p> : null}
         <div className="mt-8 flex flex-wrap gap-3">
@@ -176,10 +183,10 @@ export function VerifierDetail({
                       </span>
                       <div className="flex gap-2">
                         <Button variant="ghost" disabled={phase !== "Expired"} onClick={() => onReplace(index, true)}>
-                          Replace + Approve
+                          Approve
                         </Button>
                         <Button variant="ghost" disabled={phase !== "Expired"} onClick={() => onReplace(index, false)}>
-                          Replace + Reject
+                          Reject
                         </Button>
                       </div>
                     </>

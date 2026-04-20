@@ -39,7 +39,7 @@ export function ProfileForm({
   }, [profile]);
 
   return (
-    <Card className="max-w-3xl">
+    <Card className="mx-auto max-w-3xl">
       <div className="mb-8">
         <h1 className="font-serif text-4xl text-white">Profile</h1>
         <p className="mt-3 text-white/60">
