@@ -1,5 +1,5 @@
 "use client";
-
+// The RewardsPage component is responsible for displaying the rewards catalog and handling the redemption process.
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useReadContract } from "wagmi";
@@ -13,7 +13,8 @@ import { useProfile } from "@/hooks/use-profile";
 import { useRedeemReward } from "@/hooks/use-redeem-reward";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
-
+// The component retrieves the connected wallet and checks if the user has a profile. 
+// If the user does not have a profile, a dialog is displayed prompting them to create one before they can redeem rewards.
 export default function RewardsPage() {
   const router = useRouter();
   const wallet = useAppWallet();
@@ -26,7 +27,7 @@ export default function RewardsPage() {
     functionName: "getCatalog"
   });
   const [items, setItems] = useState<RewardCatalogItem[]>([]);
-
+// The component also loads the rewards catalog from the blockchain and displays it using the RewardsCatalog component.
   useEffect(() => {
     const catalog = (catalogRead.data as { name: string; baseCost: bigint; active: boolean }[] | undefined) ?? [];
     Promise.all(
@@ -47,7 +48,7 @@ export default function RewardsPage() {
       .then(setItems)
       .catch(() => setItems(catalog.map((item, id) => ({ id, ...item }))));
   }, [catalogRead.data]);
-
+// The useEffect hook is used to check the user's profile status whenever the wallet address changes.
   useEffect(() => {
     if (!wallet.address) {
       setProfileDialogOpen(false);

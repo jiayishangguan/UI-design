@@ -1,5 +1,5 @@
 "use client";
-
+// The RewardsCatalog component is responsible for displaying a catalog of rewards that users can redeem using their RT tokens. It receives an array of RewardCatalogItem objects as a prop, which contain information about each reward, such as its name, base cost, current cost, and active status. The component renders a grid of cards, each representing a reward item. If there are no active rewards in the catalog, it displays an empty state message indicating that there are no active rewards available. Each reward card includes details about the reward and buttons to approve the necessary RT tokens and redeem the reward, with the buttons being disabled if the reward is inactive.
 import type { RewardCatalogItem } from "@/types/contracts";
 
 import { Badge } from "@/components/common/badge";
@@ -25,7 +25,7 @@ export function RewardsCatalog({
       />
     );
   }
-
+// The component renders a grid of cards, each representing a reward item. If there are no active rewards in the catalog, it displays an empty state message indicating that there are no active rewards available. Each reward card includes details about the reward and buttons to approve the necessary RT tokens and redeem the reward, with the buttons being disabled if the reward is inactive.
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {items.map((item) => (

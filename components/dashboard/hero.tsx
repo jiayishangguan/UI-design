@@ -1,8 +1,9 @@
+// The Hero component is a section of the dashboard that serves as an introduction to the CampusSwap platform. It includes a headline, a description, and a call-to-action for users to submit activities and open the swap. The component also features a member snapshot card that provides an overview of the user's profile and participation in the community. The design incorporates various visual elements such as glass orbs, gradients, and shadows to create an engaging and dynamic user interface. The Hero component is intended to capture the attention of users and encourage them to engage with the platform's features and benefits.
 import Link from "next/link";
 
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
-
+// The Hero component is a section of the dashboard that serves as an introduction to the CampusSwap platform. It includes a headline, a description, and a call-to-action for users to submit activities and open the swap. The component also features a member snapshot card that provides an overview of the user's profile and participation in the community. The design incorporates various visual elements such as glass orbs, gradients, and shadows to create an engaging and dynamic user interface. The Hero component is intended to capture the attention of users and encourage them to engage with the platform's features and benefits.
 export function Hero({ levelLabel }: { levelLabel: string }) {
   return (
     <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">

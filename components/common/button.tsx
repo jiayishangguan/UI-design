@@ -1,3 +1,4 @@
+// The Button component is a reusable UI element that renders a styled button with different variants (primary, secondary, ghost, danger) based on the props passed to it. It uses the cn utility function to conditionally apply CSS classes for styling the button according to the specified variant. The component accepts children as its content, allowing it to display any text or elements passed to it within the button. It also spreads any additional props onto the button element, making it flexible for various use cases (e.g., handling click events, disabling the button, etc.).
 import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
 
 import { cn } from "@/lib/cn";

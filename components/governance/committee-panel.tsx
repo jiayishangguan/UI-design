@@ -1,5 +1,5 @@
 "use client";
-
+// The CommitteePanel component is responsible for displaying information about the governance committee, including its members, approval threshold, and the proposals currently waiting for committee review. It receives the relevant data as props and renders it in a structured and visually appealing manner. The component also includes links to the governance actions and verifier queue for easy access by committee members. This panel serves as a central hub for committee-related information and actions within the governance system.
 import Link from "next/link";
 
 import type { GovernanceProposal } from "@/types/contracts";
@@ -9,7 +9,7 @@ import { formatAddress, formatDateTime } from "@/lib/format";
 import { Badge } from "@/components/common/badge";
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
-
+// The component receives the loaded governance data, including the list of committee members, the approval threshold, the user's committee membership status, and the proposals awaiting committee review. It then renders this information in a structured layout, providing insights into the committee's composition and current activities.
 export function CommitteePanel({
   members,
   threshold,

@@ -1,5 +1,5 @@
 "use client";
-
+// The HomePage component serves as the main landing page for users when they access the application. It provides an overview of the user's profile, their token balances, and recent activities. The component also includes informational sections about the platform and a dialog to prompt users to complete their profile if they haven't already.
 import { useEffect, useState } from "react";
 
 import { Card } from "@/components/common/card";
@@ -14,7 +14,7 @@ import { getLevelMeta } from "@/lib/constants";
 import { formatToken } from "@/lib/format";
 import { getTasksBySubmitter } from "@/lib/supabase/queries";
 import type { TaskRecord } from "@/types/database";
-
+// The component retrieves the connected wallet and the user's profile information using custom hooks. It also fetches the user's token balances and other relevant data to display on the dashboard. If the user does not have a profile, a dialog is shown prompting them to complete their profile, which is necessary for full access to the platform's features. The main content of the page includes a hero section, statistics about the user's tokens and profile, informational cards about the platform, and a list of recent activities submitted by the user.
 export default function HomePage() {
   const wallet = useAppWallet();
   const { profile, saveProfile, hasProfile } = useProfile(wallet.address);
@@ -41,7 +41,7 @@ export default function HomePage() {
     }
     setProfileDialogOpen(false);
   }, [hasProfile, wallet.address]);
-
+// The component uses the useEffect hook to check the user's profile status whenever the wallet address changes. If the user does not have a profile and has not dismissed the dialog, it opens the profile gate dialog. If the user has a profile or dismisses the dialog, it ensures that the dialog is closed.
   const gt = wallet.gtBalance.data?.value ?? 0n;
   const rt = wallet.rtBalance.data?.value ?? 0n;
   const tier = Number(dashboardReads.data?.[0]?.result ?? 0);

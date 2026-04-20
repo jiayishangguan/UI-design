@@ -1,3 +1,4 @@
+// The StatCard component is a reusable UI element that displays a statistic with a label, value, helper text, and an optional accent. It uses the Card component to create a styled container for the content. The label is displayed in a smaller font size with reduced opacity, while the value is shown in a larger, more prominent font. If an accent is provided, it is displayed below the value in uppercase letters with specific styling. The helper text is shown at the bottom of the card in a smaller font size with reduced opacity. This component can be used throughout the application to display various statistics in a consistent and visually appealing manner.
 import { Card } from "@/components/common/card";
 
 export function StatCard({

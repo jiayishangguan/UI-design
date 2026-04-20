@@ -1,3 +1,4 @@
+// The Input component is a reusable UI element that renders a styled input field. It accepts all standard HTML input attributes through props and applies custom styling using the cn utility function. The input field is designed to be full-width, with rounded corners, a border, a semi-transparent background, padding, and specific text styles. It also includes focus styles to enhance the user experience when interacting with the input field. This component can be used throughout the application wherever an input field is needed, ensuring a consistent design and behavior.
 import type { InputHTMLAttributes } from "react";
 
 import { cn } from "@/lib/cn";

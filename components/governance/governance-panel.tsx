@@ -1,5 +1,5 @@
 "use client";
-
+// The GovernancePanel component serves as the main interface for users to interact with the governance system. It displays a list of open proposals, allows committee members to create new proposals, and provides options to approve or cancel existing proposals. The component receives various props related to governance data and actions, such as the list of proposals, committee members, approval threshold, and functions to handle proposal creation, approval, and cancellation. It also manages local state for form inputs and expanded proposal details to enhance user interaction and experience within the governance panel.
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 
@@ -15,7 +15,7 @@ import { Card } from "@/components/common/card";
 import { Input } from "@/components/common/input";
 import { Select } from "@/components/common/select";
 import { Textarea } from "@/components/common/textarea";
-
+// The getDefaultTarget function is a helper function that determines the default target contract address based on the selected action type. It checks the action type number against predefined sets of action types and returns the corresponding contract address for each set. If the action type does not match any of the predefined sets, it returns a default zero address. This function is used to automatically populate the target contract field when creating a new proposal, ensuring that the correct contract is targeted based on the chosen governance action.
 function getDefaultTarget(actionTypeNumber: number) {
   if ([2, 3].includes(actionTypeNumber)) return contractAddresses.AMMPool as `0x${string}`;
   if ([7, 8].includes(actionTypeNumber)) return contractAddresses.RewardRedemption as `0x${string}`;
@@ -23,7 +23,7 @@ function getDefaultTarget(actionTypeNumber: number) {
   if ([5, 6].includes(actionTypeNumber)) return contractAddresses.RewardToken as `0x${string}`;
   return "0x0000000000000000000000000000000000000000";
 }
-
+// The GovernancePanel component is the main interface for users to interact with the governance system. It displays a list of open proposals, allows committee members to create new proposals, and provides options to approve or cancel existing proposals. The component receives various props related to governance data and actions, such as the list of proposals, committee members, approval threshold, and functions to handle proposal creation, approval, and cancellation. It also manages local state for form inputs and expanded proposal details to enhance user interaction and experience within the governance panel.
 export function GovernancePanel({
   proposals,
   members,
@@ -171,7 +171,7 @@ export function GovernancePanel({
                   : proposal.effectiveStatus === 2
                     ? "Cancelled"
                     : "Expired";
-
+// Each proposal is rendered in a card format, showing its ID, action type, summary, proposer, approval count, current status, and creation date. Users can click a button to toggle the display of additional details about the proposal, such as the target contract, input parameters, and any execution hints. Committee members have the option to approve or cancel proposals directly from this interface, with buttons that are conditionally enabled based on the user's committee membership status and the proposal's current state.
             return (
               <div key={proposal.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex items-center justify-between gap-3">

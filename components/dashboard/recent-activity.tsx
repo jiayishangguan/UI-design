@@ -1,3 +1,4 @@
+// The RecentActivity component is a section of the dashboard that displays a list of recent task submissions by the user. It accepts an array of TaskRecord objects as a prop and renders each task's title, description, creation date, and status in a styled card format. If there are no tasks to display, it shows an empty state message encouraging the user to submit their first activity. The component also includes a link to the submission page for users to easily create new tasks. The design incorporates a clean and modern aesthetic with a focus on readability and user engagement.
 import Link from "next/link";
 
 import type { TaskRecord } from "@/types/database";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/common/badge";
 import { Card } from "@/components/common/card";
 import { EmptyState } from "@/components/common/empty-state";
 import { formatDateTime } from "@/lib/format";
-
+// The RecentActivity component is a section of the dashboard that displays a list of recent task submissions by the user. It accepts an array of TaskRecord objects as a prop and renders each task's title, description, creation date, and status in a styled card format. If there are no tasks to display, it shows an empty state message encouraging the user to submit their first activity. The component also includes a link to the submission page for users to easily create new tasks. The design incorporates a clean and modern aesthetic with a focus on readability and user engagement.
 export function RecentActivity({ tasks }: { tasks: TaskRecord[] }) {
   if (!tasks.length) {
     return (
@@ -16,7 +17,7 @@ export function RecentActivity({ tasks }: { tasks: TaskRecord[] }) {
       />
     );
   }
-
+// If there are tasks to display, the component renders a card for each task, showing its title, description, creation date, and status. The status is visually represented using a Badge component with different tones based on whether the task is approved, rejected, or pending.
   return (
     <Card>
       <div className="flex items-center justify-between gap-4">

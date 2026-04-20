@@ -1,3 +1,4 @@
+// The Card component is a reusable UI element that renders a styled card with a 3D panel effect. It accepts children as its content and allows for additional HTML attributes to be passed through props. The component uses the cn utility function to conditionally apply CSS classes for styling the card, including rounded corners, borders, background gradients, padding, shadows, and backdrop blur effects. This component can be used throughout the application to maintain a consistent design for card-like elements.
 import type { HTMLAttributes, PropsWithChildren } from "react";
 
 import { cn } from "@/lib/cn";

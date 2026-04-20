@@ -1,5 +1,5 @@
 "use client";
-
+// The SwapPanel component provides a user interface for swapping tokens in an AMM (Automated Market Maker) pool. It displays the user's current token balances, allows them to input the amount they want to swap, and shows an estimate of the output they will receive based on the current reserves and fee rates. The component also includes information about the AMM pool, such as the live reserves of GT and RT tokens, the current fee rate, and the rules for RT reserve support. Users can approve token transfers and confirm swaps through the provided buttons, with appropriate loading states to indicate when actions are in progress.
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/common/button";
@@ -16,7 +16,7 @@ import {
   parseSwapAmount,
   shouldTriggerBufferInjection
 } from "@/lib/swap";
-
+// The component uses the useMemo hook to calculate the estimated output of the swap based on the input amount, the direction of the swap, and the current reserves in the AMM pool. It also calculates the dynamic fee rate based on the current RT reserve and formats the display of token balances and fee rates for better readability. The swap explanation is generated to provide users with insights into how their swap will be executed, including the effective reserves, fee rate, and any injected RT from the buffer if applicable.
 function StackedPoolValue({ value }: { value: string }) {
   const [whole = "0", decimal = "000"] = value.split(".");
 
@@ -27,7 +27,7 @@ function StackedPoolValue({ value }: { value: string }) {
     </div>
   );
 }
-
+// The SwapPanel component renders a user interface that includes buttons to select the swap direction (GT to RT or RT to GT), input fields for the amount to swap, and displays the estimated output and current AMM pool status. It also provides information about the current fee rate and the rules for RT reserve support. The component handles user interactions for approving token transfers and confirming swaps, with appropriate loading states to indicate when actions are in progress.
 export function SwapPanel({
   reserves,
   poolStatus,

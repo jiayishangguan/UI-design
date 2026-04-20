@@ -1,3 +1,4 @@
+// The Select component is a reusable UI element that renders a styled select dropdown. It accepts all standard HTML select attributes through props and applies custom styling using the cn utility function. The component also includes a normalizeChildren function that recursively processes the children of the select element, applying specific styles to option and optgroup elements based on their disabled state. This ensures that disabled options are visually distinct from enabled ones. The Select component can be used throughout the application wherever a dropdown selection is needed, providing a consistent design and behavior.
 import { Children, cloneElement, isValidElement } from "react";
 import type { ReactNode, SelectHTMLAttributes } from "react";
 

@@ -1,11 +1,11 @@
 "use client";
-
+// The VerifierPoolCard component provides an interface for users to view information about the verifier pool and to join or leave the pool. It displays key metrics such as the current threshold for joining, the user's stake amount, the minimum stake required to avoid auto-removal, and the current governance phase. The component also shows the number of active verifiers and committee members, as well as the user's current status in the verifier pool. Users can interact with the component to approve their stake, join the pool, or leave the pool, with appropriate feedback based on their actions and the current state of the verifier pool.
 import { Badge } from "@/components/common/badge";
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS } from "@/lib/constants";
 import { formatDisplayToken, formatToken } from "@/lib/format";
-
+// The component receives various props related to the verifier pool, such as the current threshold for joining, the user's stake amount, the minimum stake required to avoid auto-removal, the current governance phase, the user's verifier status, the number of active tasks and verifiers, and the list of committee members. It also receives callback functions for approving the stake, joining the pool, and leaving the pool.
 export function VerifierPoolCard({
   threshold,
   stakeAmount,
@@ -40,7 +40,7 @@ export function VerifierPoolCard({
       : activeCount >= 5
         ? `Phase 2 is active. Add ${10 - activeCount} more active verifier${10 - activeCount === 1 ? "" : "s"} to reach Phase 3.`
         : `Phase 1 is active. Add ${5 - activeCount} more active verifier${5 - activeCount === 1 ? "" : "s"} to unlock Phase 2.`;
-
+// The component uses the received props to display relevant information about the verifier pool and the user's status, as well as to manage the state of the join and leave actions. It also provides feedback on the current phase of governance and what is required to reach the next phase, encouraging users to join the verifier pool to advance the governance process.
   return (
     <Card>
       <h1 className="font-serif text-4xl text-white">Become a Verifier</h1>

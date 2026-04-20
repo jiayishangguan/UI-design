@@ -1,5 +1,5 @@
 "use client";
-
+// The SubmitTaskForm component provides a form for users to submit their activities for verification. It includes fields for selecting the action type, entering a title and description, and uploading an evidence image. The component manages the form state, handles file selection, and retrieves the latest Sepolia block date to automatically set the activity date. When the form is submitted, it validates the input and calls the provided onSubmit function with the form data. The component also displays helpful tips for filling out the form and shows error messages if the submission fails.
 import { useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { usePublicClient } from "wagmi";
@@ -26,7 +26,7 @@ export function SubmitTaskForm({
   const [chainDateLabel, setChainDateLabel] = useState("Loading Sepolia date...");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const publicClient = usePublicClient();
-
+// The useEffect hook is used to load the latest Sepolia block date when the component mounts. It retrieves the current block from the public client and formats the date into both an ISO string (for form submission) and a human-readable label (for display). If the block data cannot be retrieved, it sets the date state to indicate that the Sepolia date is unavailable.
   useEffect(() => {
     let active = true;
 
@@ -70,7 +70,7 @@ export function SubmitTaskForm({
       active = false;
     };
   }, [publicClient]);
-
+// The form submission handler validates the input fields and ensures that a file has been selected before allowing the submission to proceed. It also handles the file upload to IPFS and calls the onSubmit function with the form data, including the CID of the uploaded evidence file. If any validation fails or if the upload or submission encounters an error, it sets an appropriate error message to inform the user.
   return (
     <Card className="max-w-5xl animate-fade-up">
       <h1 className="font-serif text-4xl text-white">Submit Activity</h1>

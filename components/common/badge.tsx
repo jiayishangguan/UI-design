@@ -1,3 +1,4 @@
+// The Badge component is a reusable UI element that displays a small badge with different tones (default, success, warning, danger) based on the props passed to it. It uses the cn utility function to conditionally apply CSS classes for styling the badge according to the specified tone. The component accepts children as its content, allowing it to display any text or elements passed to it within the badge.
 import type { PropsWithChildren } from "react";
 
 import { cn } from "@/lib/cn";

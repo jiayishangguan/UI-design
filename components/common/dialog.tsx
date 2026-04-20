@@ -1,3 +1,4 @@
+// The Dialog component is a reusable UI element that renders a modal dialog box on the screen. It accepts props to control its visibility (open), title, description, and children content. When the open prop is true, the dialog is displayed as a centered overlay with a semi-transparent background. The dialog box itself is styled with rounded corners, borders, background color, padding, and shadow effects to create a visually appealing design. The title and description are displayed at the top of the dialog, while the children content is rendered below them. This component can be used throughout the application to display various types of dialogs, such as alerts, confirmations, or forms.
 import type { PropsWithChildren } from "react";
 
 import { cn } from "@/lib/cn";

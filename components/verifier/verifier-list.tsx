@@ -1,5 +1,5 @@
 "use client";
-
+// The VerifierList component is responsible for displaying a list of tasks that are in the verifier queue. It receives an array of tasks, the current governance phase, and information about the user's role (whether they are a committee member or an active verifier). The component renders a card with a title and description, followed by a list of tasks. Each task is displayed as a link to its detail page, showing its title, submitter address, assignment status, and current voting status. If there are no tasks in the queue, it displays an empty state message.
 import Link from "next/link";
 
 import type { TaskRecord } from "@/types/database";
@@ -14,7 +14,7 @@ type VerifierQueueItem = TaskRecord & {
   isAssigned?: boolean;
   displayStatus?: "submitted" | "approved" | "rejected" | "cooldown" | "voting" | "expired";
 };
-
+// The component receives various props related to the tasks and the user's role in the review process, such as whether the user is an assigned reviewer, a committee member, or an active verifier. It uses this information to determine what controls and information to display to the user, as well as to manage the state of voting and any actions taken on the tasks.
 export function VerifierList({
   tasks,
   phase,
@@ -34,7 +34,7 @@ export function VerifierList({
       />
     );
   }
-
+// The component uses several useReadContract and useReadContracts hooks to load data related to the tasks, including the list of assigned verifiers for each task and metadata about the review phase and verifier status. It then uses this data to determine the display status of each task (e.g., whether it is in cooldown, voting, or expired) and whether it is assigned to the current user's wallet.
   return (
     <Card>
       <h1 className="font-serif text-4xl text-white">Verifier Queue</h1>
