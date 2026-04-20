@@ -16,7 +16,6 @@ export default function GovernancePage() {
       isCommitteeMember={governance.data?.[3]?.result as boolean | undefined}
       actionError={governance.actionError}
       onApprove={governance.approveProposal}
-      onExecute={governance.executeProposal}
       onCancel={governance.cancelProposal}
       onPropose={governance.propose}
     />
