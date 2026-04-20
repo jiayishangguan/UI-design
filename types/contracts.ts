@@ -35,6 +35,7 @@ export type GovernanceProposal = {
   executionHint?: string;
   summary?: string;
   details?: Array<{ label: string; value: string }>;
+  detailText?: string;
   createdAt: bigint;
 };
 
