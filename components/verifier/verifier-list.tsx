@@ -62,7 +62,7 @@ export function VerifierList({
               <div>
                 <p className="text-white">{task.title || task.action_type}</p>
                 <p className="mt-1 text-sm text-white/50">{task.submitter_address}</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-white/35">
+                <p className={`mt-2 text-xs uppercase tracking-[0.16em] ${task.isAssigned ? "text-red-300" : "text-white/35"}`}>
                   {task.isAssigned ? "Assigned to you" : "Not assigned to this wallet"}
                 </p>
               </div>
