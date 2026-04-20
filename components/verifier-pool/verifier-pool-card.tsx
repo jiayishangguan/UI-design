@@ -4,6 +4,7 @@ import { Badge } from "@/components/common/badge";
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS } from "@/lib/constants";
+import { formatDisplayToken, formatToken } from "@/lib/format";
 
 export function VerifierPoolCard({
   threshold,
@@ -41,23 +42,23 @@ export function VerifierPoolCard({
         : `Phase 1 is active. Add ${5 - activeCount} more active verifier${5 - activeCount === 1 ? "" : "s"} to unlock Phase 2.`;
 
   return (
-    <Card className="max-w-4xl">
-      <h1 className="font-serif text-4xl text-white">Verifier Pool</h1>
+    <Card>
+      <h1 className="font-serif text-4xl text-white">Become a Verifier</h1>
       <p className="mt-3 text-white/55">
         Profile is mandatory here. Joining requires GT balance threshold plus approve of the 100 GT stake.
       </p>
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-sm text-white/50">Threshold</p>
-          <p className="mt-3 font-serif text-3xl text-white">{threshold?.toString() ?? "—"} GT</p>
+          <p className="mt-3 font-serif text-3xl text-white">{threshold !== undefined ? formatToken(threshold) : "—"} GT</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-sm text-white/50">Stake Amount</p>
-          <p className="mt-3 font-serif text-3xl text-white">{stakeAmount?.toString() ?? "—"} GT</p>
+          <p className="mt-3 font-serif text-3xl text-white">{stakeAmount !== undefined ? formatToken(stakeAmount) : "—"} GT</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-sm text-white/50">Auto-removal floor</p>
-          <p className="mt-3 font-serif text-3xl text-white">{minStake?.toString() ?? "—"} GT</p>
+          <p className="mt-3 font-serif text-3xl text-white">{minStake !== undefined ? formatToken(minStake) : "—"} GT</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <p className="text-sm text-white/50">Governance phase</p>
@@ -70,11 +71,11 @@ export function VerifierPoolCard({
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-white/40">Active verifiers</p>
-            <p className="mt-2 font-serif text-3xl text-white">{activeCount}</p>
+            <p className="mt-2 font-serif text-3xl text-white">{formatDisplayToken(activeCount, 0)}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-white/40">Committee members</p>
-            <p className="mt-2 font-serif text-3xl text-white">{committeeMembers?.length ?? 0}</p>
+            <p className="mt-2 font-serif text-3xl text-white">{formatDisplayToken(committeeMembers?.length ?? 0, 0)}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-white/40">Your verifier status</p>
@@ -89,7 +90,7 @@ export function VerifierPoolCard({
       </div>
       <div className="mt-8 flex items-center gap-3">
         <Badge tone={isActive ? "success" : "warning"}>{isActive ? "Active verifier" : "Not joined"}</Badge>
-        <span className="text-sm text-white/55">Active tasks: {activeTaskCount?.toString() ?? "0"}</span>
+        <span className="text-sm text-white/55">Active tasks: {formatDisplayToken(Number(activeTaskCount ?? 0n), 0)}</span>
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
         <Button variant="secondary" onClick={onApproveStake}>

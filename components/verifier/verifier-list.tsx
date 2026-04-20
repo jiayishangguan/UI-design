@@ -37,7 +37,7 @@ export function VerifierList({
   return (
     <Card>
       <h1 className="font-serif text-4xl text-white">Verifier Queue</h1>
-      <p className="mt-3 text-white/55">
+      <p className="mt-3 max-w-2xl text-white/55">
         Voting controls only appear on detail pages for assigned verifiers, and duplicate vote UI is blocked by hasVoted.
       </p>
       <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">

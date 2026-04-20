@@ -1,5 +1,5 @@
 export const APP_NAME = "CampusSwap";
-export const PROFILE_REQUIRED_ROUTES = ["/submit", "/rewards", "/verifier-pool"] as const;
+export const PROFILE_REQUIRED_ROUTES = ["/submit", "/rewards", "/verifier"] as const;
 export const ACTION_TYPES = [
   "Recycling",
   "Tree Planting",
