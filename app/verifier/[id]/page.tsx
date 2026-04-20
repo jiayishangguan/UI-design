@@ -71,7 +71,6 @@ export default function VerifierDetailPage() {
     ],
     query: { enabled: Boolean(wallet.address) }
   });
-
   const currentTask = task.data as
     | readonly [
         string,
@@ -96,6 +95,21 @@ export default function VerifierDetailPage() {
       [],
     [currentTask, verifierAddressesRead.data]
   );
+  const slotVoteContracts =
+    taskId !== null && currentTask
+      ? verifierAddresses.map((verifier) => ({
+          address: contractAddresses.ActivityVerification as `0x${string}`,
+          abi: abis.ActivityVerification,
+          functionName: "hasVoted" as const,
+          args: [taskId, verifier as `0x${string}`]
+        }))
+      : [];
+  const slotVoteReads = useReadContracts({
+    // Wagmi is stricter than the generated ABI typing here; runtime shape is valid.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    contracts: slotVoteContracts as any,
+    query: { enabled: taskId !== null && verifierAddresses.length > 0 }
+  });
   const isAssigned = useMemo(() => {
     const verifiers = verifierAddresses;
     return Boolean(wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase()));
@@ -196,6 +210,11 @@ export default function VerifierDetailPage() {
       isActiveVerifier={Boolean((reviewerMeta.data?.[2]?.result as readonly unknown[] | undefined)?.[6])}
       isAssigned={isAssigned}
       hasVoted={Boolean(hasVotedRead.data)}
+      slotVotes={verifierAddresses.map((verifier, index) => ({
+        verifier,
+        hasVoted: Boolean(slotVoteReads.data?.[index]?.result),
+        isCurrentWallet: Boolean(wallet.address && verifier.toLowerCase() === wallet.address.toLowerCase())
+      }))}
       actionError={actionError}
       onVote={(approve) =>
         act(async () => {

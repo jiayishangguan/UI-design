@@ -17,6 +17,7 @@ export function VerifierDetail({
   isActiveVerifier,
   isAssigned,
   hasVoted,
+  slotVotes,
   actionError,
   onVote,
   onFinalize,
@@ -48,6 +49,11 @@ export function VerifierDetail({
   isActiveVerifier: boolean;
   isAssigned: boolean;
   hasVoted: boolean;
+  slotVotes: Array<{
+    verifier: string;
+    hasVoted: boolean;
+    isCurrentWallet: boolean;
+  }>;
   actionError?: string | null;
   onVote: (approve: boolean) => Promise<unknown>;
   onFinalize: () => Promise<unknown>;
@@ -150,21 +156,43 @@ export function VerifierDetail({
             Finalize Expired
           </Button>
         </div>
-        <div className="mt-8 space-y-3">
-          {task.verifiers.map((verifier, index) => (
-            <div key={verifier} className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
-              <span className="text-sm text-white/65">Slot {index + 1}: {verifier}</span>
-              <div className="flex gap-2">
-                <Button variant="ghost" disabled={phase !== "Expired"} onClick={() => onReplace(index, true)}>
-                  Replace + Approve
-                </Button>
-                <Button variant="ghost" disabled={phase !== "Expired"} onClick={() => onReplace(index, false)}>
-                  Replace + Reject
-                </Button>
+        {isCommitteeMember ? (
+          <div className="mt-8 space-y-3">
+            {slotVotes.map((slot, index) => (
+              <div key={slot.verifier} className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
+                <div>
+                  <p className="text-sm text-white/65">Slot {index + 1}</p>
+                  <p className="mt-1 text-sm text-white/75">{slot.verifier}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {slot.hasVoted ? (
+                    <span className="text-center text-xs uppercase tracking-[0.16em] text-emerald-100/70">
+                      Already voted
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-center text-xs uppercase tracking-[0.16em] text-amber-100/70">
+                        Awaiting vote
+                      </span>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" disabled={phase !== "Expired"} onClick={() => onReplace(index, true)}>
+                          Replace + Approve
+                        </Button>
+                        <Button variant="ghost" disabled={phase !== "Expired"} onClick={() => onReplace(index, false)}>
+                          Replace + Reject
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : isAssigned ? (
+          <p className="mt-8 text-sm text-white/50">
+            Only your own verifier decision is shown here. Reviewer slot management is visible to committee wallets only.
+          </p>
+        ) : null}
       </Card>
     </div>
   );
