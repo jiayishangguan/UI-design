@@ -3,7 +3,7 @@ import type { RedemptionRecord } from "@/types/database";
 import { Badge } from "@/components/common/badge";
 import { Card } from "@/components/common/card";
 import { EmptyState } from "@/components/common/empty-state";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatDisplayToken } from "@/lib/format";
 
 export function RedemptionList({ records }: { records: RedemptionRecord[] }) {
   if (!records.length) {
@@ -27,7 +27,7 @@ export function RedemptionList({ records }: { records: RedemptionRecord[] }) {
             <div>
               <p className="text-white">{record.reward_name}</p>
               <p className="mt-1 text-sm text-white/50">
-                Code: {record.redemption_code} · Cost: {record.cost} RT
+                Code: {record.redemption_code} · Cost: {formatDisplayToken(record.cost)} RT
               </p>
             </div>
             <p className="text-sm text-white/55">{formatDateTime(record.redeemed_at)}</p>
