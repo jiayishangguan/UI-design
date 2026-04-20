@@ -6,6 +6,7 @@ import { Badge } from "@/components/common/badge";
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 import { EmptyState } from "@/components/common/empty-state";
+import { formatToken } from "@/lib/format";
 
 export function RewardsCatalog({
   items,
@@ -39,11 +40,11 @@ export function RewardsCatalog({
           <div className="mt-8 grid gap-3 text-sm text-white/65">
             <div className="flex justify-between">
               <span>Base cost</span>
-              <span>{item.baseCost.toString()} RT</span>
+              <span>{formatToken(item.baseCost)} RT</span>
             </div>
             <div className="flex justify-between">
               <span>Current cost</span>
-              <span>{item.currentCost?.toString() ?? "—"} RT</span>
+              <span>{formatToken(item.currentCost)} RT</span>
             </div>
           </div>
           <div className="mt-8 flex gap-3">
