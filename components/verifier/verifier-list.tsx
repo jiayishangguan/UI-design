@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/common/empty-state";
 
 type VerifierQueueItem = TaskRecord & {
   isAssigned?: boolean;
+  displayStatus?: "submitted" | "verifying" | "approved" | "rejected" | "expired";
 };
 
 export function VerifierList({
@@ -65,8 +66,16 @@ export function VerifierList({
                   {task.isAssigned ? "Assigned to you" : "Not assigned to this wallet"}
                 </p>
               </div>
-              <Badge tone={task.status === "approved" ? "success" : task.status === "rejected" ? "danger" : "warning"}>
-                {task.status}
+              <Badge
+                tone={
+                  task.displayStatus === "approved"
+                    ? "success"
+                    : task.displayStatus === "rejected" || task.displayStatus === "expired"
+                      ? "danger"
+                      : "warning"
+                }
+              >
+                {task.displayStatus ?? task.status}
               </Badge>
             </div>
           </Link>

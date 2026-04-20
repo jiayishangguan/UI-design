@@ -62,6 +62,22 @@ export default function VerifierPage() {
     contracts: assignmentContracts as any,
     query: { enabled: assignmentContracts.length > 0 }
   });
+  const taskMetaContracts = useMemo(
+    () =>
+      tasks
+        .filter((task) => task.on_chain_task_id !== null)
+        .map((task) => ({
+          address: contractAddresses.ActivityVerification as `0x${string}`,
+          abi: abis.ActivityVerification,
+          functionName: "tasks" as const,
+          args: [BigInt(task.on_chain_task_id!)]
+        })),
+    [tasks]
+  );
+  const taskMetaReads = useReadContracts({
+    contracts: taskMetaContracts as any,
+    query: { enabled: taskMetaContracts.length > 0 }
+  });
 
   const reviewerMeta = useReadContracts({
     contracts: [
@@ -82,16 +98,28 @@ export default function VerifierPage() {
   });
 
   const queueTasks = useMemo(
-    () =>
-      tasks.map((task, index) => {
+    () => {
+      const nowSeconds = Math.floor(Date.now() / 1000);
+
+      return tasks.map((task, index) => {
         const verifiers = assignmentReads.data?.[index]?.result as readonly string[] | undefined;
+        const chainTask = taskMetaReads.data?.[index]?.result as
+          | readonly [string, string, string, bigint, bigint, bigint, number, bigint, bigint, boolean, boolean, readonly string[], number]
+          | undefined;
         const isAssigned = Boolean(
           wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase())
         );
+        const chainStatus = Number(chainTask?.[6] ?? 0);
+        const voteDeadline = Number(chainTask?.[8] ?? 0n);
+        const displayStatus: "submitted" | "verifying" | "approved" | "rejected" | "expired" =
+          chainStatus === 0 && voteDeadline > 0 && nowSeconds > voteDeadline
+            ? "expired"
+            : task.status;
 
-        return { ...task, isAssigned };
-      }),
-    [assignmentReads.data, tasks, wallet.address]
+        return { ...task, isAssigned, displayStatus };
+      });
+    },
+    [assignmentReads.data, taskMetaReads.data, tasks, wallet.address]
   );
 
   return (
