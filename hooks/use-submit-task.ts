@@ -7,7 +7,9 @@ import { usePublicClient, useWriteContract } from "wagmi";
 import { getReadableContractError } from "@/lib/errors";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
+import { TOKEN_DECIMALS } from "@/lib/format";
 import { createTaskDraft, updateTaskAfterSubmit } from "@/lib/supabase/mutations";
+import { parseUnits } from "viem";
 
 type SubmitInput = {
   address: string;
@@ -23,6 +25,7 @@ export function useSubmitTask() {
   const [submitting, setSubmitting] = useState(false);
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
+  const defaultReward = parseUnits("5", TOKEN_DECIMALS);
 
   async function submitTask(input: SubmitInput) {
     if (!publicClient) throw new Error("Public client unavailable");
@@ -72,7 +75,7 @@ export function useSubmitTask() {
         address: contractAddresses.ActivityVerification as `0x${string}`,
         abi: abis.ActivityVerification,
         functionName: "submitTask",
-        args: [input.actionType, input.proofCID, 5n]
+        args: [input.actionType, input.proofCID, defaultReward]
       });
       const hash = await writeContractAsync(simulation.request);
 
