@@ -52,7 +52,7 @@ export default function VerifierPage() {
         .map((task) => ({
           address: contractAddresses.ActivityVerification as `0x${string}`,
           abi: abis.ActivityVerification,
-          functionName: "tasks" as const,
+          functionName: "getTaskVerifiers" as const,
           args: [BigInt(task.on_chain_task_id!)]
         })),
     [tasks]
@@ -84,10 +84,7 @@ export default function VerifierPage() {
   const queueTasks = useMemo(
     () =>
       tasks.map((task, index) => {
-        const chainTask = assignmentReads.data?.[index]?.result as
-          | readonly [string, string, string, bigint, bigint, bigint, number, bigint, bigint, boolean, boolean, readonly string[], number]
-          | undefined;
-        const verifiers = chainTask?.[11] as readonly string[] | undefined;
+        const verifiers = assignmentReads.data?.[index]?.result as readonly string[] | undefined;
         const isAssigned = Boolean(
           wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase())
         );

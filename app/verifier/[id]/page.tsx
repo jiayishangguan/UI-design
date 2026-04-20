@@ -42,6 +42,13 @@ export default function VerifierDetailPage() {
     args: wallet.address && taskId !== null ? [taskId, wallet.address as `0x${string}`] : undefined,
     query: { enabled: Boolean(wallet.address) && taskId !== null }
   });
+  const verifierAddressesRead = useReadContract({
+    address: contractAddresses.ActivityVerification as `0x${string}`,
+    abi: abis.ActivityVerification,
+    functionName: "getTaskVerifiers",
+    args: taskId !== null ? [taskId] : undefined,
+    query: { enabled: taskId !== null }
+  });
   const reviewerMeta = useReadContracts({
     contracts: [
       {
@@ -82,10 +89,17 @@ export default function VerifierDetailPage() {
         number
       ]
     | undefined;
+  const verifierAddresses = useMemo(
+    () =>
+      (verifierAddressesRead.data as readonly string[] | undefined) ??
+      (currentTask?.[11] as readonly string[] | undefined) ??
+      [],
+    [currentTask, verifierAddressesRead.data]
+  );
   const isAssigned = useMemo(() => {
-    const verifiers = currentTask?.[11] as readonly string[] | undefined;
+    const verifiers = verifierAddresses;
     return Boolean(wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase()));
-  }, [currentTask, wallet.address]);
+  }, [verifierAddresses, wallet.address]);
 
   useEffect(() => {
     let active = true;
@@ -154,7 +168,7 @@ export default function VerifierDetailPage() {
         voteDeadline: currentTask[8],
         gtQueued: currentTask[9],
         gtClaimed: currentTask[10],
-        verifiers: currentTask[11] as readonly string[],
+        verifiers: verifierAddresses,
         verifierCount: Number(currentTask[12])
       }}
       mirroredTask={mirroredTask}
