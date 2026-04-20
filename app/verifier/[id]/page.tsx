@@ -131,6 +131,25 @@ export default function VerifierDetailPage() {
     return publicClient.waitForTransactionReceipt({ hash });
   }
 
+  async function sendActivityVerificationTx(
+    functionName: "voteOnTask" | "finalizeExpiredTask" | "committeeReplaceVote",
+    args: readonly unknown[]
+  ) {
+    if (!publicClient) throw new Error("Public client unavailable");
+    if (!wallet.address) throw new Error("A connected wallet is required.");
+
+    const simulation = await publicClient.simulateContract({
+      account: wallet.address as `0x${string}`,
+      address: contractAddresses.ActivityVerification as `0x${string}`,
+      abi: abis.ActivityVerification,
+      functionName,
+      args
+    });
+
+    const hash = await writeContractAsync(simulation.request);
+    return wait(hash);
+  }
+
   async function act<T>(fn: () => Promise<T>) {
     setActionError(null);
     try {
@@ -180,35 +199,17 @@ export default function VerifierDetailPage() {
       actionError={actionError}
       onVote={(approve) =>
         act(async () => {
-          const hash = await writeContractAsync({
-            address: contractAddresses.ActivityVerification as `0x${string}`,
-            abi: abis.ActivityVerification,
-            functionName: "voteOnTask",
-            args: [taskId, approve]
-          });
-          await wait(hash);
+          await sendActivityVerificationTx("voteOnTask", [taskId, approve]);
         })
       }
       onFinalize={() =>
         act(async () => {
-          const hash = await writeContractAsync({
-            address: contractAddresses.ActivityVerification as `0x${string}`,
-            abi: abis.ActivityVerification,
-            functionName: "finalizeExpiredTask",
-            args: [taskId]
-          });
-          await wait(hash);
+          await sendActivityVerificationTx("finalizeExpiredTask", [taskId]);
         })
       }
       onReplace={(slot, approve) =>
         act(async () => {
-          const hash = await writeContractAsync({
-            address: contractAddresses.ActivityVerification as `0x${string}`,
-            abi: abis.ActivityVerification,
-            functionName: "committeeReplaceVote",
-            args: [taskId, BigInt(slot), approve]
-          });
-          await wait(hash);
+          await sendActivityVerificationTx("committeeReplaceVote", [taskId, BigInt(slot), approve]);
         })
       }
     />

@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/common/empty-state";
 
 type VerifierQueueItem = TaskRecord & {
   isAssigned?: boolean;
-  displayStatus?: "submitted" | "verifying" | "approved" | "rejected" | "expired";
+  displayStatus?: "submitted" | "approved" | "rejected" | "cooldown" | "voting" | "expired";
 };
 
 export function VerifierList({

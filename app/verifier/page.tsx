@@ -13,6 +13,7 @@ import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
 import { useProfile } from "@/hooks/use-profile";
 import { useVerifierPool } from "@/hooks/use-verifier-pool";
+import { TASK_COOLDOWN_SECONDS } from "@/lib/constants";
 import { getVerifierTasks } from "@/lib/supabase/queries";
 
 export default function VerifierPage() {
@@ -110,11 +111,18 @@ export default function VerifierPage() {
           wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase())
         );
         const chainStatus = Number(chainTask?.[6] ?? 0);
+        const timestamp = Number(chainTask?.[7] ?? 0n);
         const voteDeadline = Number(chainTask?.[8] ?? 0n);
-        const displayStatus: "submitted" | "verifying" | "approved" | "rejected" | "expired" =
-          chainStatus === 0 && voteDeadline > 0 && nowSeconds > voteDeadline
-            ? "expired"
-            : task.status;
+        const displayStatus: "submitted" | "approved" | "rejected" | "cooldown" | "voting" | "expired" =
+          chainStatus === 1
+            ? "approved"
+            : chainStatus === 2
+              ? "rejected"
+              : timestamp > 0 && nowSeconds < timestamp + TASK_COOLDOWN_SECONDS
+                ? "cooldown"
+                : voteDeadline > 0 && nowSeconds < voteDeadline
+                  ? "voting"
+                  : "expired";
 
         return { ...task, isAssigned, displayStatus };
       });
