@@ -1,18 +1,14 @@
+import { TOKEN_DECIMALS, formatToken, parseTokenInput } from "@/lib/format";
+
 const BASIS_POINTS = 10_000n;
-export const TARGET_RT = 3000n;
-export const BUFFER_TARGET_RT = 3600n;
-export const BUFFER_INJECTION_TRIGGER_RT = 1200n;
+const UNIT = 10n ** BigInt(TOKEN_DECIMALS);
+
+export const TARGET_RT = 3000n * UNIT;
+export const BUFFER_TARGET_RT = 3600n * UNIT;
+export const BUFFER_INJECTION_TRIGGER_RT = 1200n * UNIT;
 
 export function parseSwapAmount(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  if (!/^\d+$/.test(trimmed)) return null;
-
-  try {
-    return BigInt(trimmed);
-  } catch {
-    return null;
-  }
+  return parseTokenInput(value);
 }
 
 export function getDynamicFee(reserveRt: bigint) {
@@ -58,7 +54,6 @@ export function getEstimatedOutput(
   if (amountIn <= 0n) {
     return {
       amountOut: 0n,
-      amountOutMilli: 0n,
       feeRate: getDynamicFee(reserveRt),
       effectiveReserveGt: reserveGt,
       effectiveReserveRt: reserveRt,
@@ -76,7 +71,6 @@ export function getEstimatedOutput(
   if (reserveIn <= 0n || reserveOut <= 0n) {
     return {
       amountOut: 0n,
-      amountOutMilli: 0n,
       feeRate: getDynamicFee(injectedState.reserveRt),
       effectiveReserveGt: injectedState.reserveGt,
       effectiveReserveRt: injectedState.reserveRt,
@@ -89,11 +83,9 @@ export function getEstimatedOutput(
   const amountInWithFee = amountIn * (BASIS_POINTS - feeRate);
   const denominator = reserveIn * BASIS_POINTS + amountInWithFee;
   const amountOut = denominator > 0n ? (amountInWithFee * reserveOut) / denominator : 0n;
-  const amountOutMilli = denominator > 0n ? (amountInWithFee * reserveOut * 1000n) / denominator : 0n;
 
   return {
     amountOut,
-    amountOutMilli,
     feeRate,
     effectiveReserveGt: injectedState.reserveGt,
     effectiveReserveRt: injectedState.reserveRt,
@@ -103,9 +95,7 @@ export function getEstimatedOutput(
 }
 
 export function formatThreeDecimals(value: bigint) {
-  const whole = value / 1000n;
-  const fraction = value % 1000n;
-  return `${whole.toString()}.${fraction.toString().padStart(3, "0")}`;
+  return formatToken(value);
 }
 
 export function getSwapExplanation({
@@ -129,12 +119,12 @@ export function getSwapExplanation({
 
   const pairText =
     direction === "GT_TO_RT"
-      ? `GT/RT reserves ${formatThreeDecimals(reserveGt * 1000n)}/${formatThreeDecimals(reserveRt * 1000n)}`
-      : `RT/GT reserves ${formatThreeDecimals(reserveRt * 1000n)}/${formatThreeDecimals(reserveGt * 1000n)}`;
+      ? `GT/RT reserves ${formatThreeDecimals(reserveGt)}/${formatThreeDecimals(reserveRt)}`
+      : `RT/GT reserves ${formatThreeDecimals(reserveRt)}/${formatThreeDecimals(reserveGt)}`;
   const injectionText =
     direction === "GT_TO_RT" && injectedRt > 0n
-      ? ` Buffer support would inject ${formatThreeDecimals(injectedRt * 1000n)} RT before pricing because live AMM RT is at the 1200 trigger.`
+      ? ` Buffer support would inject ${formatThreeDecimals(injectedRt)} RT before pricing because live AMM RT is at the ${formatThreeDecimals(BUFFER_INJECTION_TRIGGER_RT)} trigger.`
       : "";
 
-  return `Output = input × current swap rate × (1 - fee). Using ${pairText} with a dynamic fee of ${feeRate} bp.${injectionText}`;
+  return `Output = input x current swap rate x (1 - fee). Using ${pairText} with a dynamic fee of ${feeRate} bp.${injectionText}`;
 }
