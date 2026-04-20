@@ -32,7 +32,6 @@ export function GovernancePanel({
   actionError,
   onPropose,
   onApprove,
-  onExecute,
   onCancel
 }: {
   proposals: GovernanceProposal[];
@@ -42,11 +41,11 @@ export function GovernancePanel({
   actionError?: string | null;
   onPropose: (input: { actionType: number; targetContract: `0x${string}`; params: Record<string, unknown> }) => Promise<unknown>;
   onApprove: (id: number) => Promise<unknown>;
-  onExecute: (id: number) => Promise<unknown>;
   onCancel: (id: number) => Promise<unknown>;
 }) {
   const [actionType, setActionType] = useState("7");
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [expandedProposalIds, setExpandedProposalIds] = useState<Record<number, boolean>>({});
 
   const actionTypeNumber = Number(actionType);
   const actionConfig = GOVERNANCE_ACTION_DETAILS[actionTypeNumber as keyof typeof GOVERNANCE_ACTION_DETAILS];
@@ -69,7 +68,7 @@ export function GovernancePanel({
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-      <Card>
+      <Card className="min-w-0">
         <h1 className="font-serif text-4xl text-white">Governance</h1>
         <p className="mt-3 text-white/55">
           Committee actions now use guided fields instead of raw JSON, so proposal creation stays readable for every
@@ -155,7 +154,7 @@ export function GovernancePanel({
           </Button>
         </div>
       </Card>
-      <Card>
+      <Card className="min-w-0">
         <h2 className="font-serif text-3xl text-white">Open Proposals</h2>
         <div className="mt-6 space-y-4">
           {proposals.map((proposal) => {
@@ -163,6 +162,15 @@ export function GovernancePanel({
               GOVERNANCE_ACTION_DETAILS[proposal.actionType as keyof typeof GOVERNANCE_ACTION_DETAILS]?.title ??
               ACTION_TYPE_OPTIONS.find((item) => item.value === proposal.actionType)?.label ??
               String(proposal.actionType);
+            const isExpanded = Boolean(expandedProposalIds[proposal.id]);
+            const statusLabel =
+              proposal.effectiveStatus === 0
+                ? "Pending"
+                : proposal.effectiveStatus === 1
+                  ? "Executed"
+                  : proposal.effectiveStatus === 2
+                    ? "Cancelled"
+                    : "Expired";
 
             return (
               <div key={proposal.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -170,38 +178,76 @@ export function GovernancePanel({
                   <p className="text-white">Proposal #{proposal.id}</p>
                   <div className="flex items-center gap-2">
                     <Badge>{actionLabel}</Badge>
-                    {proposal.approvalCount >= (threshold ?? 0n) && proposal.effectiveStatus === 0 ? <Badge tone="warning">Ready to execute</Badge> : null}
                     {proposal.validTarget === false ? <Badge tone="danger">Target mismatch</Badge> : null}
                   </div>
                 </div>
                 <p className="mt-4 text-sm leading-6 text-white/82">{proposal.summary}</p>
-                {proposal.details?.length ? (
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    {proposal.details.map((detail) => (
-                      <div key={`${proposal.id}-${detail.label}`} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">{detail.label}</p>
-                        <p className="mt-2 break-words text-sm text-white/72">{detail.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
                 <div className="mt-4 space-y-2 text-sm text-white/60">
                   <p>Proposer: {formatAddress(proposal.proposer)}</p>
                   <p>Approvals: {proposal.approvalCount.toString()}</p>
-                  <p>
-                    Current status:{" "}
-                    {proposal.effectiveStatus === 0
-                      ? "Pending"
-                      : proposal.effectiveStatus === 1
-                        ? "Executed"
-                        : proposal.effectiveStatus === 2
-                          ? "Cancelled"
-                          : "Expired"}
-                  </p>
+                  <p>Current status: {statusLabel}</p>
                   <p>Created: {formatDateTime(Number(proposal.createdAt) * 1000)}</p>
                 </div>
-                {proposal.validTarget === false && proposal.executionHint ? (
-                  <p className="mt-3 text-sm leading-6 text-white/45">{proposal.executionHint}</p>
+                <div className="mt-4">
+                  <Button
+                    variant="ghost"
+                    className="border border-white/20 hover:border-white/35"
+                    onClick={() => {
+                      setExpandedProposalIds((current) => ({
+                        ...current,
+                        [proposal.id]: !current[proposal.id]
+                      }));
+                    }}
+                  >
+                    {isExpanded ? "Hide details" : "View details"}
+                  </Button>
+                </div>
+                {isExpanded ? (
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 p-4">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">Target contract</p>
+                        <p className="mt-2 break-words text-sm text-white/72">{proposal.targetContract}</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">Status</p>
+                        <p className="mt-2 text-sm text-white/72">{statusLabel}</p>
+                      </div>
+                    {proposal.detailText ? (
+                      <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">Detail</p>
+                        <p className="mt-2 max-w-full whitespace-normal break-words text-sm leading-6 text-white/72">
+                          {proposal.detailText}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">Detail</p>
+                        <p className="mt-2 max-w-full whitespace-normal break-words text-sm leading-6 text-white/50">
+                          No decoded detail is available for this proposal yet.
+                        </p>
+                      </div>
+                    )}
+                    {proposal.details?.length ? (
+                      <>
+                        {proposal.details.map((detail) => (
+                          <div key={`${proposal.id}-${detail.label}`} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-white/35">{detail.label}</p>
+                            <p className="mt-2 break-words text-sm text-white/72">{detail.value}</p>
+                          </div>
+                        ))}
+                      </>
+                    ) : null}
+                    {proposal.executionHint ? (
+                      <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">Execution hint</p>
+                        <p className="mt-2 max-w-full whitespace-normal break-words text-sm leading-6 text-white/60">
+                          {proposal.executionHint}
+                        </p>
+                      </div>
+                    ) : null}
+                    </div>
+                  </div>
                 ) : null}
                 {proposal.hasApproved ? <p className="mt-3 text-sm text-emerald-200/80">This wallet has already approved this proposal.</p> : null}
                 <div className="mt-4 flex gap-3">
@@ -213,15 +259,6 @@ export function GovernancePanel({
                     }}
                   >
                     Approve
-                  </Button>
-                  <Button
-                    variant="primary"
-                    disabled={!isCommitteeMember || proposal.effectiveStatus !== 0 || proposal.approvalCount < (threshold ?? 0n)}
-                    onClick={() => {
-                      void onExecute(proposal.id);
-                    }}
-                  >
-                    Execute
                   </Button>
                   <Button
                     variant="ghost"
