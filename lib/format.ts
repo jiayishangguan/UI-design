@@ -62,8 +62,15 @@ export function formatRelativeCountdown(targetSeconds?: number | bigint) {
   if (!targetSeconds) return "N/A";
   const delta = Number(targetSeconds) * 1000 - Date.now();
   if (delta <= 0) return "Ready";
+  const totalSeconds = Math.floor(delta / 1000);
+  const days = Math.floor(totalSeconds / 86400);
   const hours = Math.floor(delta / 1000 / 3600);
-  const minutes = Math.floor((delta / 1000 % 3600) / 60);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (days > 0) return `${days}d ${hours % 24}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  if (seconds > 0) return `${seconds}s`;
   return `${hours}h ${minutes}m`;
 }
 

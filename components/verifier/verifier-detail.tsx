@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
-import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS } from "@/lib/constants";
+import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS, TASK_COOLDOWN_SECONDS, TASK_VOTING_WINDOW_SECONDS } from "@/lib/constants";
 import { formatRelativeCountdown } from "@/lib/format";
 import { getIpfsGatewayUrl } from "@/lib/ipfs";
 
@@ -54,7 +54,7 @@ export function VerifierDetail({
   onReplace: (slot: number, approve: boolean) => Promise<unknown>;
 }) {
   const nowSeconds = Date.now() / 1000;
-  const cooldownEnd = Number(task.timestamp) + 24 * 60 * 60;
+  const cooldownEnd = Number(task.timestamp) + TASK_COOLDOWN_SECONDS;
   const votingEnd = Number(task.voteDeadline);
   const phase = nowSeconds < cooldownEnd ? "Cooldown" : nowSeconds < votingEnd ? "Voting" : "Expired";
   const displayProofCID = mirroredTask?.proof_cid || task.proofCID;
@@ -67,7 +67,7 @@ export function VerifierDetail({
         ? "Phase 1 still assigns committee members as reviewers. Joining the verifier pool alone does not unlock voting on this task yet."
         : "This wallet is not one of the assigned reviewers for this task."
       : phase === "Cooldown"
-        ? "Voting opens after the 24-hour cooldown."
+        ? `Voting opens after the ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown.`
         : phase === "Expired"
           ? "The standard voting window has ended. Committee replacement or finalization is now available."
           : null;
@@ -115,7 +115,7 @@ export function VerifierDetail({
           <p>{GOVERNANCE_PHASE_DETAILS[phaseId] ?? GOVERNANCE_PHASE_DETAILS[0]}</p>
           <p>Stage: {phase}</p>
           <p>Cooldown remaining: {phase === "Cooldown" ? formatRelativeCountdown(BigInt(cooldownEnd)) : "Complete"}</p>
-          <p>Voting deadline: {formatRelativeCountdown(task.voteDeadline)}</p>
+          <p>Review closes in: {formatRelativeCountdown(task.voteDeadline)}</p>
           <p>Approvals / Rejections: {task.approvals.toString()} / {task.rejections.toString()}</p>
           <p>Queued GT: {task.gtQueued ? "Yes" : "No"}</p>
           <p>
@@ -134,7 +134,8 @@ export function VerifierDetail({
         <h2 className="font-serif text-3xl text-white">Voting Controls</h2>
         <p className="mt-3 text-white/55">
           In Phase 1, committee wallets can still review activities only when they are one of the assigned reviewer
-          addresses. Voting opens after the mandatory 24-hour cooldown.
+          addresses. Voting opens after the mandatory {Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and
+          stays open for {Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.
         </p>
         {actionError ? <p className="mt-4 text-sm text-red-200">{actionError}</p> : null}
         {voteBlockReason ? <p className="mt-4 text-sm text-amber-100/85">{voteBlockReason}</p> : null}

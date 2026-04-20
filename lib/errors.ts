@@ -41,7 +41,7 @@ export function getReadableContractError(error: unknown, fallback = "Transaction
   const readable = getReadableErrorMessage(error, fallback);
 
   if (/TaskInCooldown/i.test(readable)) {
-    return "This activity is still in its 24-hour cooldown window, so verifier voting has not opened yet.";
+    return "This activity is still in its 2-minute cooldown window, so verifier voting has not opened yet.";
   }
 
   if (/NotAssignedVerifier/i.test(readable)) {

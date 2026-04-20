@@ -1,5 +1,9 @@
 export const APP_NAME = "CampusSwap";
 export const PROFILE_REQUIRED_ROUTES = ["/submit", "/rewards", "/verifier"] as const;
+export const TASK_COOLDOWN_SECONDS = 2 * 60;
+export const TASK_VOTING_WINDOW_SECONDS = 3 * 60;
+export const VERIFIER_SUSPENSION_SECONDS = 5 * 60;
+export const PROPOSAL_TTL_SECONDS = 10 * 60;
 export const ACTION_TYPES = [
   "Recycling",
   "Tree Planting",
