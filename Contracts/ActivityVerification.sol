@@ -117,8 +117,8 @@ contract ActivityVerification is ReentrancyGuard {
     uint256 public constant maxTasksPerDay = 60;     // 60 tasks/day
     uint256 public constant userTaskLimit = 2;       // 2 submissions/day/user
     uint256 public constant verifierTaskLimit = 8;   // 8 reviews/day/verifier
-    uint256 public constant voteDeadlineDuration = 12 hours;
-    uint256 public constant taskCooldown = 24 hours; //24-hour cooldown before voting begins
+    uint256 public constant voteDeadlineDuration = 3 minutes;
+    uint256 public constant taskCooldown = 2 minutes; //24-hour cooldown before voting begins
     uint256 public constant APPROVAL_THRESHOLD = 2; //Approval threshold for 3-verifier model: 2 out of 3
 
     // Daily statistics

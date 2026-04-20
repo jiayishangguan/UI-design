@@ -97,7 +97,7 @@ contract AMMPool is ReentrancyGuard {
     uint256 public constant INJECT_TRIGGER = 4000; // trigger inject when reserveRT is below 40% of target
     uint256 public constant BUFFER_SIZE = 3600 * UNIT; // buffer can hold at most 3600 RT
     uint256 public constant BUFFER_ALERT = 900 * UNIT; // alert
-    uint256 public constant COOLDOWN_INJECT = 1 days; // wait 24 hours between inject actions
+    uint256 public constant COOLDOWN_INJECT = 2 minutes; // wait 24 hours between inject actions
     
 
    

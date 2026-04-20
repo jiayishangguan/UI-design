@@ -86,7 +86,7 @@ contract CommitteeManager {
     uint256 public approvalThreshold;
 
     /// @notice Time-to-live for proposals in seconds (default 7 days)
-    uint256 public constant PROPOSAL_TTL = 7 days;
+    uint256 public constant PROPOSAL_TTL = 10 minutes;
 
     // Events - for transparency and frontend tracking
     event MemberAdded(address indexed member);
@@ -174,8 +174,8 @@ contract CommitteeManager {
         p.targetContract = _targetContract;
         p.data = _data;
         p.proposer = msg.sender;
-        p.hasApproved[msg.sender] = true; // proposer is automatically counted as the first approval
-        p.approvalCount = 1;
+        p.hasApproved[msg.sender] = true;
+        p.approvalCount = 1; // proposer is automatically counted as the first approval
         p.status = ProposalStatus.Pending;
         p.createdAt = block.timestamp;
 

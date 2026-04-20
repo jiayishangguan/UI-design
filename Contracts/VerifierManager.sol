@@ -32,8 +32,8 @@ contract VerifierManager is ReentrancyGuard {
     uint256 public constant STAKE_AMOUNT = 100 * UNIT;      // Pledge amount
     uint256 public constant MIN_STAKE = 80 * UNIT; //below this could not be verifier
     uint256 public constant MAX_CONSECUTIVE = 3;           // continuously select upper limit
-    uint256 public constant COOLDOWN_ROUNDS = 2;            // cooldown rounds
-    uint256 public constant SUSPENSION_DURATION = 3 days;  // suspension duration
+    uint256 public constant COOLDOWN_ROUNDS = 1;            // cooldown rounds
+    uint256 public constant SUSPENSION_DURATION = 5 minutes;  // suspension duration
 
     // Phase thresholds
     uint256 public constant PHASE2_THRESHOLD = 5;   // >= 5 active verifiers -> Phase 2
