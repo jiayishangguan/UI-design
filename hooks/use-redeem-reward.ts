@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { parseUnits } from "viem";
+import { formatUnits } from "viem";
 import { usePublicClient, useWriteContract } from "wagmi";
 
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
 import { buildRedemptionCode } from "@/lib/format";
+import { TOKEN_DECIMALS } from "@/lib/format";
 import { createRedemption } from "@/lib/supabase/mutations";
 
 export function useRedeemReward() {
@@ -45,7 +46,7 @@ export function useRedeemReward() {
         address: params.address.toLowerCase(),
         reward_id: params.rewardId,
         reward_name: params.rewardName,
-        cost: Number(params.cost),
+        cost: Number(formatUnits(params.cost, TOKEN_DECIMALS)),
         redemption_code: buildRedemptionCode(),
         claimed: false,
         claimed_at: null,
