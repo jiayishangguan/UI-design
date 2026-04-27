@@ -45,7 +45,7 @@ export function RewardsCatalog({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-serif text-3xl text-white">{item.name}</h2>
-                <p className="mt-2 text-sm text-white/55">Dynamic pricing sourced from RewardRedemption.getCurrentCost()</p>
+                <p className="mt-2 text-sm text-white/55">The RT price updates with the reward pool, so the final cost may move a little over time.</p>
               </div>
               <Badge tone={item.active ? "success" : "warning"}>{item.active ? "Active" : "Inactive"}</Badge>
             </div>
