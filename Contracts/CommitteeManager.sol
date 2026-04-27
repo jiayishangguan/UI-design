@@ -233,7 +233,8 @@ contract CommitteeManager {
             action == ActionType.MINT_GT ||
             action == ActionType.SET_GT_MINTER ||
             action == ActionType.SET_RT_MINTER ||
-            action == ActionType.INIT_POOL
+            action == ActionType.INIT_POOL ||
+            action == ActionType.GENERIC_CALL
         );
     }
 
