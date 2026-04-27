@@ -11,7 +11,7 @@ export function RedemptionList({ records }: { records: RedemptionRecord[] }) {
     return (
       <EmptyState
         title="No redemptions yet"
-        description="After a reward is redeemed and stored in Supabase, the transaction hash and claim status will show here."
+        description="No vouchers in your pocket yet. Earn more RT through green actions or swap a little GT, then come back to claim a reward you like."
       />
     );
   }
