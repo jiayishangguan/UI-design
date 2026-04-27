@@ -85,9 +85,9 @@ contract GreenToken is ERC20 {
     function getTier(address user) external view returns (uint8) {
         uint256 total = totalMinted[user];
 
-        if (total >= 500) return 3;
-        if (total >= 200) return 2;
-        if (total >= 50) return 1;
+        if (total >= 500 * 10 ** decimals()) return 3;
+        if (total >= 200 * 10 ** decimals()) return 2;
+        if (total >= 50 * 10 ** decimals()) return 1;
         return 0;
     }
 }

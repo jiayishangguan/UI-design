@@ -51,7 +51,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      <Hero levelLabel={levelMeta.shortLabel} />
+      <Hero levelLabel={levelMeta.shortLabel} levelDescription={levelMeta.description} />
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr_0.9fr]">
         <StatCard
           label="Green Token"
@@ -66,30 +66,32 @@ export default function HomePage() {
           accent="Swap-enabled utility"
         />
         <div className="rounded-[28px] border border-white/10 bg-black/35 p-6 shadow-glow backdrop-blur-xl animate-fade-up [animation-delay:160ms]">
-          <p className="text-sm text-white/55">Identity snapshot</p>
+          <p className="text-sm text-white/55">Profile summary</p>
           <p className="mt-6 font-serif text-3xl text-white">{profile?.full_name ?? "Guest"}</p>
           <p className="mt-3 text-sm text-white/55">
             {levelMeta.shortLabel} · Total minted {formatToken(totalMinted)} GT · Verifier phase {phase + 1}
           </p>
-          <p className="mt-6 text-sm leading-6 text-white/45">{levelMeta.description}</p>
+          <p className="mt-6 text-sm leading-6 text-white/45">
+            Levels are based on lifetime GT minted from approved activities, not your current wallet balance after swaps
+            or penalties.
+          </p>
         </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="animate-fade-up [animation-delay:220ms]">
-          <p className="text-xs uppercase tracking-[0.18em] text-white/40">About CampusSwap</p>
-          <h2 className="mt-4 font-serif text-4xl text-white">A more thoughtful digital space for everyday campus action</h2>
+          <p className="text-xs uppercase tracking-[0.18em] text-white/40">How CampusSwap works</p>
+          <h2 className="mt-4 font-serif text-4xl text-white">From approved action to minted GT</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
-            CampusSwap is designed for the rhythm of campus life. It helps students record practical environmental
-            actions, move through fair verification, and see their contribution grow into rewards without making the
-            experience feel overly technical or transactional.
+            Submit a campus sustainability action with proof, wait for verifier review, then receive GT when the
+            activity is approved. GT records your contribution history and can be used in swap and reward flows.
           </p>
         </Card>
         <Card className="animate-fade-up [animation-delay:280ms]">
-          <p className="text-xs uppercase tracking-[0.18em] text-white/40">Participation model</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-white/40">What happens next</p>
           <div className="mt-4 space-y-4 text-sm text-white/65">
-            <p>1. Connect your wallet and complete a lightweight profile when a reward flow needs it.</p>
-            <p>2. Share a documented activity and let the review process confirm your contribution.</p>
-            <p>3. Build up GT, explore RT, and redeem benefits that feel rooted in campus life.</p>
+            <p>1. Submit an activity with a short description, location, and proof image.</p>
+            <p>2. Verifiers review it after the cooldown period and vote before the deadline.</p>
+            <p>3. If approved, 5 GT is minted immediately or queued when the daily 300 GT cap is full.</p>
           </div>
         </Card>
       </div>

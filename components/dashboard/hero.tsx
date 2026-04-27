@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 // The Hero component is a section of the dashboard that serves as an introduction to the CampusSwap platform. It includes a headline, a description, and a call-to-action for users to submit activities and open the swap. The component also features a member snapshot card that provides an overview of the user's profile and participation in the community. The design incorporates various visual elements such as glass orbs, gradients, and shadows to create an engaging and dynamic user interface. The Hero component is intended to capture the attention of users and encourage them to engage with the platform's features and benefits.
-export function Hero({ levelLabel }: { levelLabel: string }) {
+export function Hero({ levelLabel, levelDescription }: { levelLabel: string; levelDescription: string }) {
   return (
     <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
       <div className="relative py-12 animate-fade-up">
@@ -28,21 +28,21 @@ export function Hero({ levelLabel }: { levelLabel: string }) {
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Verify</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Activity review</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              Let submissions move through a clear review flow, so trust is built step by step rather than assumed.
+              Each submitted activity enters review before GT is issued. Approved activities currently reward 5 GT.
             </p>
           </div>
           <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Swap</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Daily GT cap</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              Convert earned value with reserve-aware pricing that feels measured, not overwhelming.
+              The system can mint up to 300 GT per day across all approved activities.
             </p>
           </div>
           <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Redeem</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Mint queue</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              Bring digital contribution back into campus life through practical rewards and recognition.
+              If the daily cap is full, approved GT waits in a queue until daily mint capacity is available.
             </p>
           </div>
         </div>
@@ -52,20 +52,19 @@ export function Hero({ levelLabel }: { levelLabel: string }) {
           <div className="animate-pulse-soft absolute -right-14 top-8 h-40 w-40 rounded-full bg-[#6e9f79]/12 blur-3xl" />
           <div className="glass-orb animate-drift bottom-10 left-8 h-24 w-24" />
           <div className="animate-float relative z-10">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Member snapshot</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Account level</p>
             <p className="mt-4 font-serif text-4xl text-white">{levelLabel}</p>
             <p className="mt-4 max-w-sm text-sm leading-6 text-white/60">
-              Your dashboard brings together profile readiness, token balances, and community participation in one soft,
-              readable view.
+              {levelDescription}
             </p>
             <div className="mt-8 space-y-3">
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/40">System focus</p>
-                <p className="mt-2 text-sm text-white/70">A low-noise interface shaped for campus participation, not speculative trading.</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-white/40">Level rules</p>
+                <p className="mt-2 text-sm text-white/70">Bronze starts at 50 GT, Silver at 200 GT, and Gold at 500 lifetime GT minted.</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/40">Profile model</p>
-                <p className="mt-2 text-sm text-white/70">Wallet-first identity with lightweight profile support for rewards, trust, and outreach.</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-white/40">Mint result</p>
+                <p className="mt-2 text-sm text-white/70">Approved activities mint immediately unless the 300 GT daily cap has already been used.</p>
               </div>
             </div>
           </div>

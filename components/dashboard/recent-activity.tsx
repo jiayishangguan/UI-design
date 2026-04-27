@@ -13,7 +13,7 @@ export function RecentActivity({ tasks }: { tasks: TaskRecord[] }) {
     return (
       <EmptyState
         title="No recent submissions"
-        description="Your on-chain task flow will appear here after the first verified campus action."
+        description="Submit your first campus action to start building your activity history."
       />
     );
   }
@@ -23,7 +23,7 @@ export function RecentActivity({ tasks }: { tasks: TaskRecord[] }) {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-serif text-3xl text-white">Recent Activity</h2>
-          <p className="mt-2 text-sm text-white/55">Supabase mirrors of your latest task submissions.</p>
+          <p className="mt-2 text-sm text-white/55">Your latest submitted activities, review status, and GT mint result.</p>
         </div>
         <Link href="/submit" className="text-sm text-emerald-100/80">
           New submission

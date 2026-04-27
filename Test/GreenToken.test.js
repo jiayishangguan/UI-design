@@ -64,17 +64,17 @@ describe("GreenToken", function () {
       "Amount must be > 0"
     );
 
-    await expect(greenToken.connect(avOperator).mint(student.address, 50n))
+    await expect(greenToken.connect(avOperator).mint(student.address, 50n * UNIT))
       .to.emit(greenToken, "Minted")
-      .withArgs(student.address, 50n, 50n);
-    expect(await greenToken.balanceOf(student.address)).to.equal(50n);
-    expect(await greenToken.totalMinted(student.address)).to.equal(50n);
+      .withArgs(student.address, 50n * UNIT, 50n * UNIT);
+    expect(await greenToken.balanceOf(student.address)).to.equal(50n * UNIT);
+    expect(await greenToken.totalMinted(student.address)).to.equal(50n * UNIT);
     expect(await greenToken.getTier(student.address)).to.equal(1);
 
-    await greenToken.connect(avOperator).mint(student.address, 150n);
+    await greenToken.connect(avOperator).mint(student.address, 150n * UNIT);
     expect(await greenToken.getTier(student.address)).to.equal(2);
 
-    await greenToken.connect(avOperator).mint(user.address, 500n);
+    await greenToken.connect(avOperator).mint(user.address, 500n * UNIT);
     expect(await greenToken.getTier(user.address)).to.equal(3);
   });
 

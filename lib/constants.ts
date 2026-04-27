@@ -23,18 +23,18 @@ export const GOVERNANCE_PHASE_DETAILS = [
 export const PROPOSAL_STATUS_LABELS = ["Pending", "Executed", "Cancelled", "Expired"] as const;
 export const LEVEL_LABELS = ["Bronze", "Silver", "Gold"] as const;
 export const LEVEL_DESCRIPTIONS = [
-  "Early sustainability contributor with 50+ lifetime GT minted.",
-  "Established campus contributor with 200+ lifetime GT minted.",
-  "Top tier sustainability leader with 500+ lifetime GT minted."
+  "Bronze starts after 50 lifetime GT has been minted from approved activities.",
+  "Silver starts after 200 lifetime GT has been minted from approved activities.",
+  "Gold is the highest contributor tier and starts after 500 lifetime GT has been minted."
 ] as const;
 
 export function getLevelMeta(tier: number) {
   if (tier <= 0) {
     return {
-      numericLevel: 1,
-      levelName: "Bronze",
-      shortLabel: "Level 1 · Bronze",
-      description: "Default entry level for connected members before higher on-chain milestones are reached."
+      numericLevel: 0,
+      levelName: "No level yet",
+      shortLabel: "No level yet",
+      description: "Earn Bronze after 50 lifetime GT has been minted from approved activities."
     };
   }
 
