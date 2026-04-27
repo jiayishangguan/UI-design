@@ -80,18 +80,18 @@ export default function HomePage() {
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="animate-fade-up [animation-delay:220ms]">
           <p className="text-xs uppercase tracking-[0.18em] text-white/40">How CampusSwap works</p>
-          <h2 className="mt-4 font-serif text-4xl text-white">From approved action to minted GT</h2>
+          <h2 className="mt-4 font-serif text-4xl text-white">Got an action to share?</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
-            Submit a campus sustainability action with proof, wait for verifier review, then receive GT when the
-            activity is approved. GT records your contribution history and can be used in swap and reward flows.
+            Add a clear proof image, tell verifiers what happened, and let the review flow turn approved campus impact
+            into GT. From there, your contribution history can grow into swaps, rewards, and higher levels.
           </p>
         </Card>
         <Card className="animate-fade-up [animation-delay:280ms]">
           <p className="text-xs uppercase tracking-[0.18em] text-white/40">What happens next</p>
           <div className="mt-4 space-y-4 text-sm text-white/65">
-            <p>1. Submit an activity with a short description, location, and proof image.</p>
-            <p>2. Verifiers review it after the cooldown period and vote before the deadline.</p>
-            <p>3. If approved, 5 GT is minted immediately or queued when the daily 300 GT cap is full.</p>
+            <p>1. You submit an activity with a short description, location, and proof image.</p>
+            <p>2. Verifiers take a look after the cooldown period and vote before the deadline.</p>
+            <p>3. If they approve it, you earn 5 GT. If the 300 GT daily mint cap is already full, your GT waits in the queue until capacity opens.</p>
           </div>
         </Card>
       </div>

@@ -63,8 +63,8 @@ export function Hero({ levelLabel, levelDescription }: { levelLabel: string; lev
                 <p className="mt-2 text-sm text-white/70">Bronze starts at 50 GT, Silver at 200 GT, and Gold at 500 lifetime GT minted.</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/40">Mint result</p>
-                <p className="mt-2 text-sm text-white/70">Approved activities mint immediately unless the 300 GT daily cap has already been used.</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-white/40">Your next step</p>
+                <p className="mt-2 text-sm text-white/70">Keep submitting approved actions to grow your level and unlock more ways to use your tokens.</p>
               </div>
             </div>
           </div>
