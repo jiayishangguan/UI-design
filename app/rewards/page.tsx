@@ -67,13 +67,14 @@ export default function RewardsPage() {
         items={items.filter((item) => item.active)}
         onApprove={approve}
         onRedeem={async (item) => {
-          if (!wallet.address || !item.currentCost) throw new Error("Wallet and current cost required");
+          if (!wallet.address || item.currentCost === undefined) throw new Error("Wallet and current cost required");
           await redeem({
             rewardId: item.id,
             rewardName: item.name,
             cost: item.currentCost,
             address: wallet.address
           });
+          router.push("/my-redemptions");
         }}
       />
       <ProfileGateDialog

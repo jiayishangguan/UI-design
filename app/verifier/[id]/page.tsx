@@ -222,11 +222,6 @@ export default function VerifierDetailPage() {
           await sendActivityVerificationTx("voteOnTask", [taskId, approve]);
         })
       }
-      onFinalize={() =>
-        act(async () => {
-          await sendActivityVerificationTx("finalizeExpiredTask", [taskId]);
-        })
-      }
       onReplace={(slot, approve) =>
         act(async () => {
           await sendActivityVerificationTx("committeeReplaceVote", [taskId, BigInt(slot), approve]);

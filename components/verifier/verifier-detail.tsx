@@ -20,7 +20,6 @@ export function VerifierDetail({
   slotVotes,
   actionError,
   onVote,
-  onFinalize,
   onReplace
 }: {
   task: {
@@ -56,13 +55,23 @@ export function VerifierDetail({
   }>;
   actionError?: string | null;
   onVote: (approve: boolean) => Promise<unknown>;
-  onFinalize: () => Promise<unknown>;
   onReplace: (slot: number, approve: boolean) => Promise<unknown>;
 }) {
   const nowSeconds = Date.now() / 1000;
   const cooldownEnd = Number(task.timestamp) + TASK_COOLDOWN_SECONDS;
   const votingEnd = Number(task.voteDeadline);
   const phase = nowSeconds < cooldownEnd ? "Cooldown" : nowSeconds < votingEnd ? "Voting" : "Expired";
+  const taskStatus = task.status === 1 ? "Approved" : task.status === 2 ? "Rejected" : "Pending";
+  const rewardStatus =
+    task.status === 1
+      ? task.gtClaimed
+        ? "GT reward sent"
+        : task.gtQueued
+          ? "Waiting for daily GT allowance"
+          : "Approved, reward pending"
+      : task.status === 2
+        ? "No GT reward"
+        : "Waiting for review result";
   const displayProofCID = mirroredTask?.proof_cid || task.proofCID;
   const [imageFailed, setImageFailed] = useState(false);
   const proofImageUrl = useMemo(() => getIpfsGatewayUrl(displayProofCID), [displayProofCID]);
@@ -75,7 +84,7 @@ export function VerifierDetail({
       : phase === "Cooldown"
         ? `Voting opens after the ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown.`
         : phase === "Expired"
-          ? "The standard voting window has ended. Committee replacement or finalization is now available."
+          ? "The standard voting window has ended. Committee members can replace missing votes."
           : null;
   const votingIntro =
     phaseId === 0
@@ -125,11 +134,11 @@ export function VerifierDetail({
         <div className="mt-8 space-y-3 text-sm text-white/60">
           <p>Governance phase: {GOVERNANCE_PHASE_LABELS[phaseId] ?? GOVERNANCE_PHASE_LABELS[0]}</p>
           <p>{GOVERNANCE_PHASE_DETAILS[phaseId] ?? GOVERNANCE_PHASE_DETAILS[0]}</p>
-          <p>Stage: {phase}</p>
+          <p>Review stage: {taskStatus === "Pending" ? phase : taskStatus}</p>
           <p>Cooldown remaining: {phase === "Cooldown" ? formatRelativeCountdown(BigInt(cooldownEnd)) : "Complete"}</p>
           <p>Review closes in: {formatRelativeCountdown(task.voteDeadline)}</p>
           <p>Approvals / Rejections: {task.approvals.toString()} / {task.rejections.toString()}</p>
-          <p>Queued GT: {task.gtQueued ? "Yes" : "No"}</p>
+          <p>Reward status: {rewardStatus}</p>
           <p>
             Your role:{" "}
             {isAssigned
@@ -158,9 +167,6 @@ export function VerifierDetail({
           </Button>
           <Button variant="danger" disabled={!isAssigned || hasVoted || phase !== "Voting"} onClick={() => onVote(false)}>
             Reject
-          </Button>
-          <Button variant="secondary" disabled={phase !== "Expired"} onClick={onFinalize}>
-            Finalize Expired
           </Button>
         </div>
         {isCommitteeMember ? (

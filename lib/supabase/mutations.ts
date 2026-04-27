@@ -41,7 +41,16 @@ export async function updateTaskAfterSubmit(id: number, input: Partial<TaskRecor
 }
 
 export async function createRedemption(record: Omit<RedemptionRecord, "id">) {
-  const { data, error } = await supabase.from("redemptions").insert(record).select("*").single();
-  if (error) throw new Error(getReadableErrorMessage(error, "Redemption save failed."));
-  return data as RedemptionRecord;
+  const response = await fetch("/api/redemptions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(record)
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(getReadableErrorMessage(payload, "Redemption save failed."));
+  }
+  return payload.redemption as RedemptionRecord;
 }
