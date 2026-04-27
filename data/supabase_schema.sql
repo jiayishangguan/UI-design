@@ -99,7 +99,7 @@ COMMENT ON TABLE public.tasks IS 'Off-chain mirror of ActivityVerification tasks
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- 表 3: redemptions（P1 建议）
--- 奖品赎回记录：生成取餐码，咖啡店线下核销用
+-- 奖品兑换记录：用链上交易哈希作为唯一凭证
 -- ════════════════════════════════════════════════════════════════════════════
 
 CREATE TABLE public.redemptions (
@@ -112,16 +112,15 @@ CREATE TABLE public.redemptions (
   -- 奖品快照（冗余存储，奖品被合约删除后仍可查看）
   reward_id INTEGER NOT NULL,
   reward_name VARCHAR(200) NOT NULL,
-  cost INTEGER NOT NULL CHECK (cost > 0),
+  cost NUMERIC(36, 18) NOT NULL CHECK (cost > 0),
   
-  -- 核销
-  redemption_code VARCHAR(32) NOT NULL UNIQUE,
+  -- 核销状态（兑换凭证以 tx_hash 为准，不再依赖 pickup code）
   claimed BOOLEAN NOT NULL DEFAULT false,
   claimed_at TIMESTAMPTZ,
   claimed_by VARCHAR(100),
   
   -- 链上关联
-  tx_hash VARCHAR(66),
+  tx_hash VARCHAR(66) NOT NULL UNIQUE CHECK (tx_hash = LOWER(tx_hash) AND tx_hash LIKE '0x%'),
   block_number BIGINT,
   
   -- 元信息
@@ -129,10 +128,10 @@ CREATE TABLE public.redemptions (
 );
 
 CREATE INDEX idx_redemptions_address ON public.redemptions(address);
-CREATE INDEX idx_redemptions_code ON public.redemptions(redemption_code);
+CREATE INDEX idx_redemptions_tx_hash ON public.redemptions(tx_hash);
 CREATE INDEX idx_redemptions_claimed ON public.redemptions(claimed) WHERE claimed = false;
 
-COMMENT ON TABLE public.redemptions IS 'Physical reward redemption records with pickup codes. 奖品赎回记录';
+COMMENT ON TABLE public.redemptions IS 'Reward redemption records keyed by on-chain transaction hash. 奖品兑换记录';
 
 
 -- ════════════════════════════════════════════════════════════════════════════
