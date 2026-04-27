@@ -168,7 +168,14 @@ export default function VerifierDetailPage() {
   async function act<T>(fn: () => Promise<T>) {
     setActionError(null);
     try {
-      return await fn();
+      const result = await fn();
+      await Promise.all([
+        task.refetch(),
+        hasVotedRead.refetch(),
+        verifierAddressesRead.refetch(),
+        slotVoteReads.refetch()
+      ]);
+      return result;
     } catch (error) {
       const readable = getReadableContractError(error, "The verifier action could not be completed.");
       setActionError(readable);

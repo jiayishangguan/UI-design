@@ -19,11 +19,13 @@ type VerifierQueueItem = TaskRecord & {
   displayStatus?: "submitted" | "approved" | "rejected" | "cooldown" | "voting" | "expired";
 };
 
-type QueueTab = "assigned" | "needs-review" | "completed" | "all";
+type QueueTab = "assigned" | "in-review" | "follow-up" | "completed" | "all";
+type TabTone = "info" | "success" | "warning" | "danger" | "default";
 
 const TASKS_PER_VIEW = 6;
 const OPEN_STATUSES = new Set(["submitted", "cooldown", "voting"]);
-const DONE_STATUSES = new Set(["approved", "rejected", "expired"]);
+const FOLLOW_UP_STATUSES = new Set(["expired"]);
+const DONE_STATUSES = new Set(["approved", "rejected"]);
 
 const STATUS_LABELS: Record<NonNullable<VerifierQueueItem["displayStatus"]>, string> = {
   submitted: "Submitted",
@@ -40,8 +42,63 @@ function getQueueStatus(task: VerifierQueueItem) {
 
 function getStatusTone(status: string) {
   if (status === "approved") return "success";
-  if (status === "rejected" || status === "expired") return "danger";
+  if (status === "expired") return "warning";
+  if (status === "rejected") return "danger";
   return "warning";
+}
+
+function getTabClass(tone: TabTone, isSelected: boolean) {
+  if (!isSelected) {
+    return "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white";
+  }
+
+  if (tone === "info") return "border-sky-300/45 bg-sky-400/10 text-sky-50";
+  if (tone === "success") return "border-emerald-300/35 bg-emerald-400/10 text-emerald-50";
+  if (tone === "warning") return "border-amber-300/35 bg-amber-400/10 text-amber-50";
+  if (tone === "danger") return "border-red-300/35 bg-red-400/10 text-red-50";
+  return "border-white/20 bg-white/[0.08] text-white";
+}
+
+function getTaskAccent(task: VerifierQueueItem) {
+  const status = getQueueStatus(task);
+  if (task.isAssigned) return "border-sky-300/30";
+  if (OPEN_STATUSES.has(status)) return "border-emerald-300/25";
+  if (FOLLOW_UP_STATUSES.has(status)) return "border-amber-300/25";
+  if (DONE_STATUSES.has(status)) return "border-red-300/20";
+  return "border-white/10";
+}
+
+function getAccessMessage({
+  task,
+  status,
+  phase,
+  isActiveVerifier
+}: {
+  task: VerifierQueueItem;
+  status: string;
+  phase?: number;
+  isActiveVerifier?: boolean;
+}) {
+  if (task.isAssigned) {
+    if (status === "voting") return { label: "You can vote", className: "text-sky-100/85" };
+    if (status === "cooldown") return { label: "Assigned - voting opens soon", className: "text-sky-100/70" };
+    if (status === "expired") return { label: "Voting window ended - follow-up needed", className: "text-amber-100/75" };
+    return { label: "Assigned to your wallet", className: "text-sky-100/75" };
+  }
+
+  if (status === "expired") {
+    return { label: "Expired - follow-up needed", className: "text-amber-100/70" };
+  }
+
+  if (isActiveVerifier && phase === 0) {
+    return { label: "Verifier pool member - Phase 1 uses committee reviewers", className: "text-amber-100/70" };
+  }
+
+  if (isActiveVerifier) {
+    return { label: "Not assigned - view only", className: "text-white/40" };
+  }
+
+  return { label: "View only", className: "text-white/40" };
 }
 // The component receives various props related to the tasks and the user's role in the review process, such as whether the user is an assigned reviewer, a committee member, or an active verifier. It uses this information to determine what controls and information to display to the user, as well as to manage the state of voting and any actions taken on the tasks.
 export function VerifierList({
@@ -82,18 +139,20 @@ export function VerifierList({
   const groupedTasks = useMemo(
     () => ({
       assigned: sortedTasks.filter((task) => task.isAssigned),
-      "needs-review": sortedTasks.filter((task) => OPEN_STATUSES.has(getQueueStatus(task))),
+      "in-review": sortedTasks.filter((task) => OPEN_STATUSES.has(getQueueStatus(task))),
+      "follow-up": sortedTasks.filter((task) => FOLLOW_UP_STATUSES.has(getQueueStatus(task))),
       completed: sortedTasks.filter((task) => DONE_STATUSES.has(getQueueStatus(task))),
       all: sortedTasks
     }),
     [sortedTasks]
   );
 
-  const tabs: { id: QueueTab; label: string; helper: string }[] = [
-    { id: "assigned", label: "Assigned to me", helper: "Tasks where your wallet can help." },
-    { id: "needs-review", label: "Needs review", helper: "Open tasks still moving through review." },
-    { id: "completed", label: "Completed", helper: "Approved, rejected, and expired tasks." },
-    { id: "all", label: "All", helper: "Every task in this queue." }
+  const tabs: { id: QueueTab; label: string; helper: string; tone: TabTone }[] = [
+    { id: "assigned", label: "Assigned to me", helper: "Tasks where your wallet can vote when the review window opens.", tone: "info" },
+    { id: "in-review", label: "In review", helper: "Pending tasks that are still moving through review.", tone: "success" },
+    { id: "follow-up", label: "Needs follow-up", helper: "Expired tasks that still need a final follow-up step.", tone: "warning" },
+    { id: "completed", label: "Completed", helper: "Finished tasks with an approved or rejected result.", tone: "danger" },
+    { id: "all", label: "All", helper: "Every task in this queue.", tone: "default" }
   ];
 
   const currentTasks = groupedTasks[activeTab];
@@ -135,9 +194,7 @@ export function VerifierList({
               type="button"
               className={cn(
                 "rounded-full border px-4 py-2 text-sm transition",
-                isSelected
-                  ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-50"
-                  : "border-white/10 bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"
+                getTabClass(tab.tone, isSelected)
               )}
               aria-pressed={isSelected}
               onClick={() => {
@@ -164,6 +221,7 @@ export function VerifierList({
           visibleTasks.map((task) => {
             const status = getQueueStatus(task);
             const statusLabel = STATUS_LABELS[status as NonNullable<VerifierQueueItem["displayStatus"]>] ?? task.status;
+            const accessMessage = getAccessMessage({ task, status, phase, isActiveVerifier });
 
             return (
               <Link
@@ -171,7 +229,7 @@ export function VerifierList({
                 href={`/verifier/${task.on_chain_task_id}`}
                 className={cn(
                   "grid gap-3 rounded-2xl border bg-white/[0.03] px-4 py-4 transition hover:border-emerald-300/25 hover:bg-white/[0.05] md:grid-cols-[1fr_auto] md:items-center",
-                  task.isAssigned ? "border-emerald-300/25" : "border-white/10"
+                  getTaskAccent(task)
                 )}
               >
                 <div className="min-w-0">
@@ -184,8 +242,8 @@ export function VerifierList({
                     {task.action_type ? <span className="text-white/25"> · {task.action_type}</span> : null}
                     {task.gt_reward ? <span className="text-white/25"> · {formatDisplayToken(task.gt_reward, 0)} GT</span> : null}
                   </p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-white/35">
-                    {task.isAssigned ? "Open details to review and vote" : "View details"}
+                  <p className={cn("mt-2 text-xs uppercase tracking-[0.16em]", accessMessage.className)}>
+                    {accessMessage.label}
                   </p>
                 </div>
                 <div className="flex md:justify-end">

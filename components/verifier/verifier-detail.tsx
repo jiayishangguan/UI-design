@@ -62,6 +62,11 @@ export function VerifierDetail({
   const votingEnd = Number(task.voteDeadline);
   const phase = nowSeconds < cooldownEnd ? "Cooldown" : nowSeconds < votingEnd ? "Voting" : "Expired";
   const taskStatus = task.status === 1 ? "Approved" : task.status === 2 ? "Rejected" : "Pending";
+  const assignedVoteSlots = slotVotes.filter((slot) => slot.verifier !== "0x0000000000000000000000000000000000000000");
+  const votedSlots = assignedVoteSlots.filter((slot) => slot.hasVoted).length;
+  const fallbackCompletedVotes = Number(task.approvals + task.rejections);
+  const completedVotes = assignedVoteSlots.length ? votedSlots : fallbackCompletedVotes;
+  const totalVotes = assignedVoteSlots.length || task.verifiers.length || task.verifierCount || Math.max(fallbackCompletedVotes, 3);
   const rewardStatus =
     task.status === 1
       ? task.gtClaimed
@@ -132,12 +137,12 @@ export function VerifierDetail({
           ) : null}
         </div>
         <div className="mt-8 space-y-3 text-sm text-white/60">
-          <p>Governance phase: {GOVERNANCE_PHASE_LABELS[phaseId] ?? GOVERNANCE_PHASE_LABELS[0]}</p>
-          <p>{GOVERNANCE_PHASE_DETAILS[phaseId] ?? GOVERNANCE_PHASE_DETAILS[0]}</p>
           <p>Review stage: {taskStatus === "Pending" ? phase : taskStatus}</p>
           <p>Cooldown remaining: {phase === "Cooldown" ? formatRelativeCountdown(BigInt(cooldownEnd)) : "Complete"}</p>
           <p>Review closes in: {formatRelativeCountdown(task.voteDeadline)}</p>
-          <p>Approvals / Rejections: {task.approvals.toString()} / {task.rejections.toString()}</p>
+          <p>
+            Vote progress: {completedVotes}/{totalVotes}
+          </p>
           <p>Reward status: {rewardStatus}</p>
           <p>
             Your role:{" "}
