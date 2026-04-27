@@ -238,6 +238,14 @@ export function GovernancePanel({
                         ))}
                       </>
                     ) : null}
+                    {proposal.data ? (
+                      <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.16em] text-white/35">Encoded data</p>
+                        <p className="mt-2 max-w-full whitespace-normal break-all text-sm leading-6 text-white/60">
+                          {proposal.data}
+                        </p>
+                      </div>
+                    ) : null}
                     {proposal.executionHint ? (
                       <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
                         <p className="text-xs uppercase tracking-[0.16em] text-white/35">Execution hint</p>

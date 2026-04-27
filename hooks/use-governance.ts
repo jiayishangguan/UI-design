@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { decodeEventLog, decodeFunctionData, parseAbiItem } from "viem";
+import { decodeEventLog } from "viem";
 import { usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 
 import type { GovernanceProposal } from "@/types/contracts";
@@ -20,6 +20,11 @@ import {
   getGovernanceExecutionHint,
   isActionTargetValid
 } from "@/lib/proposal-encoder";
+
+function getProposalDataFromGetterResult(result: unknown): `0x${string}` | undefined {
+  if (!Array.isArray(result) || result.length < 3 || typeof result[2] !== "string") return undefined;
+  return result[2] as `0x${string}`;
+}
 
 export function useGovernance(address?: `0x${string}`) {
   const [pending, setPending] = useState(false);
@@ -71,6 +76,12 @@ export function useGovernance(address?: `0x${string}`) {
           {
             address: contractAddresses.CommitteeManager as `0x${string}`,
             abi: abis.CommitteeManager,
+            functionName: "proposals" as const,
+            args: [proposalId]
+          },
+          {
+            address: contractAddresses.CommitteeManager as `0x${string}`,
+            abi: abis.CommitteeManager,
             functionName: "getEffectiveStatus" as const,
             args: [proposalId]
           },
@@ -92,117 +103,24 @@ export function useGovernance(address?: `0x${string}`) {
 
   useEffect(() => {
     let active = true;
-    const proposalCreatedEvent = parseAbiItem(
-      "event ProposalCreated(uint256 indexed proposalId, uint8 actionType, address indexed proposer, address indexed targetContract)"
-    );
-    const proposeOnlyAbi = [
-      {
-        type: "function",
-        stateMutability: "nonpayable",
-        name: "propose",
-        inputs: [
-          { name: "_actionType", type: "uint8" },
-          { name: "_targetContract", type: "address" },
-          { name: "_data", type: "bytes" }
-        ],
-        outputs: [{ name: "proposalId", type: "uint256" }]
-      }
-    ] as const;
-    const blockTimestampCache = new Map<string, number>();
 
-    async function getBlockTimestamp(blockNumber: bigint) {
-      const cacheKey = blockNumber.toString();
-      const cached = blockTimestampCache.get(cacheKey);
-      if (cached !== undefined) return cached;
-
-      const block = await publicClient!.getBlock({ blockNumber });
-      const timestamp = Number(block.timestamp);
-      blockTimestampCache.set(cacheKey, timestamp);
-      return timestamp;
-    }
-
-    async function findBlockAtOrAfterTimestamp(targetTimestamp: number, latestBlock: bigint) {
-      let low = 0n;
-      let high = latestBlock;
-
-      while (low < high) {
-        const mid = (low + high) >> 1n;
-        const midTimestamp = await getBlockTimestamp(mid);
-
-        if (midTimestamp < targetTimestamp) {
-          low = mid + 1n;
-        } else {
-          high = mid;
-        }
-      }
-
-      return low;
-    }
-
-    async function findProposalCreatedLog(proposalId: number, createdAt: bigint, latestBlock: bigint) {
-      const targetBlock = await findBlockAtOrAfterTimestamp(Number(createdAt), latestBlock);
-      const windows: Array<readonly [bigint, bigint]> = [[targetBlock, targetBlock]];
-
-      for (let distance = 10n; distance <= 50n; distance += 10n) {
-        const backwardStart = targetBlock > distance ? targetBlock - distance : 0n;
-        const backwardEnd = targetBlock > distance - 1n ? targetBlock - (distance - 1n) : 0n;
-        windows.push([backwardStart, backwardEnd]);
-
-        const forwardStart = targetBlock + (distance - 9n);
-        const forwardEnd = targetBlock + distance;
-        windows.push([forwardStart, forwardEnd > latestBlock ? latestBlock : forwardEnd]);
-      }
-
-      for (const [fromBlock, toBlock] of windows) {
-        if (fromBlock > toBlock) continue;
-
-        try {
-          const logs = await publicClient!.getLogs({
-            address: contractAddresses.CommitteeManager as `0x${string}`,
-            event: proposalCreatedEvent,
-            args: { proposalId: BigInt(proposalId) },
-            fromBlock,
-            toBlock
-          });
-
-          if (logs.length > 0) {
-            return logs[0];
-          }
-        } catch {
-          // Ignore narrow-range lookup failures and continue searching nearby blocks.
-        }
-      }
-
-      return null;
-    }
-
-    async function loadProposalMeta() {
-      if (!publicClient || proposalCount === 0) {
+    function loadProposalMeta() {
+      if (proposalCount === 0) {
         if (active) setProposalMeta({});
         return;
       }
 
       const nextMeta: Record<number, { summary: string; details: Array<{ label: string; value: string }>; detailText: string }> = {};
-      const latestBlock = await publicClient.getBlockNumber();
 
       for (let proposalId = 0; proposalId < proposalCount; proposalId += 1) {
         try {
-          const proposalEntry = proposalReads.data?.[proposalId * 3];
+          const proposalEntry = proposalReads.data?.[proposalId * 4];
+          const dataEntry = proposalReads.data?.[proposalId * 4 + 1];
           if (!proposalEntry?.result) continue;
 
-          const [actionType, targetContract, , , , createdAt] = proposalEntry.result as readonly [number, string, string, bigint, number, bigint];
-          const createdLog = await findProposalCreatedLog(proposalId, createdAt, latestBlock);
-          if (!createdLog?.transactionHash) continue;
-
-          const transaction = await publicClient.getTransaction({ hash: createdLog.transactionHash });
-          const decodedCall = decodeFunctionData({
-            abi: proposeOnlyAbi,
-            data: transaction.input
-          });
-
-          if (decodedCall.functionName !== "propose") continue;
-
-          const data = decodedCall.args[2] as `0x${string}`;
+          const [actionType, targetContract] = proposalEntry.result as readonly [number, string, string, bigint, number, bigint];
+          const data = getProposalDataFromGetterResult(dataEntry?.result);
+          if (!data) continue;
           const params = decodeProposalData(Number(actionType), data);
           nextMeta[proposalId] = {
             summary: getProposalDisplayName(Number(actionType)),
@@ -219,19 +137,20 @@ export function useGovernance(address?: `0x${string}`) {
       }
     }
 
-    void loadProposalMeta();
+    loadProposalMeta();
     return () => {
       active = false;
     };
-  }, [proposalCount, proposalReads.data, publicClient]);
+  }, [proposalCount, proposalReads.data]);
 
   const proposals = useMemo<GovernanceProposal[]>(() => {
     const rows = proposalReads.data ?? [];
     const next: GovernanceProposal[] = [];
-    for (let index = 0; index < rows.length; index += 3) {
+    for (let index = 0; index < rows.length; index += 4) {
       const proposalEntry = rows[index];
-      const effectiveStatusEntry = rows[index + 1];
-      const hasApprovedEntry = rows[index + 2];
+      const dataEntry = rows[index + 1];
+      const effectiveStatusEntry = rows[index + 2];
+      const hasApprovedEntry = rows[index + 3];
       if (!proposalEntry?.result) continue;
       const [actionType, targetContract, proposer, approvalCount, status, createdAt] = proposalEntry.result as readonly [
         number,
@@ -242,9 +161,10 @@ export function useGovernance(address?: `0x${string}`) {
         bigint
       ];
       next.push({
-        id: Math.floor(index / 3),
+        id: Math.floor(index / 4),
         actionType: Number(actionType),
         targetContract,
+        data: getProposalDataFromGetterResult(dataEntry?.result),
         proposer,
         approvalCount,
         status: Number(status),
@@ -252,9 +172,9 @@ export function useGovernance(address?: `0x${string}`) {
         hasApproved: Boolean(hasApprovedEntry?.result ?? false),
         validTarget: isActionTargetValid(Number(actionType), targetContract as `0x${string}`),
         executionHint: getGovernanceExecutionHint(Number(actionType), targetContract),
-        summary: proposalMeta[Math.floor(index / 3)]?.summary ?? getFallbackProposalSummary(Number(actionType)),
-        details: proposalMeta[Math.floor(index / 3)]?.details ?? getFallbackProposalDetails(Number(actionType)),
-        detailText: proposalMeta[Math.floor(index / 3)]?.detailText ?? "",
+        summary: proposalMeta[Math.floor(index / 4)]?.summary ?? getFallbackProposalSummary(Number(actionType)),
+        details: proposalMeta[Math.floor(index / 4)]?.details ?? getFallbackProposalDetails(Number(actionType)),
+        detailText: proposalMeta[Math.floor(index / 4)]?.detailText ?? "",
         createdAt
       });
     }

@@ -14,6 +14,7 @@ const links = [
   { href: "/submit", label: "Activity" },
   { href: "/swap", label: "Swap" },
   { href: "/rewards", label: "Rewards" },
+  { href: "/my-redemptions", label: "Redemptions" },
   { href: "/verifier", label: "Verifier" },
   { href: "/committees", label: "Committees" },
   { href: "/governance", label: "Governance" },

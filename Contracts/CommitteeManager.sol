@@ -231,7 +231,6 @@ contract CommitteeManager {
     function _isStartOnlyAction(ActionType action) internal pure returns (bool) {
         return (
             action == ActionType.MINT_GT ||
-            action == ActionType.MINT_RT ||
             action == ActionType.SET_GT_MINTER ||
             action == ActionType.SET_RT_MINTER ||
             action == ActionType.INIT_POOL ||
@@ -416,6 +415,16 @@ contract CommitteeManager {
         Proposal storage p = proposals[_proposalId];
 
         return (p.actionType, p.targetContract, p.proposer, p.approvalCount, getEffectiveStatus(_proposalId), p.createdAt);
+    }
+
+    /**
+     * @notice Retrieves the ABI-encoded execution data for a proposal
+     * @param _proposalId The ID of the proposal
+     * @return data The raw ABI-encoded proposal payload
+     */
+    function getProposalData(uint256 _proposalId) external view returns (bytes memory data) {
+        if (_proposalId >= proposalCount) revert ProposalNotFound();
+        return proposals[_proposalId].data;
     }
 
     /**

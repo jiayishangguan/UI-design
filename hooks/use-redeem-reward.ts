@@ -6,7 +6,7 @@ import { usePublicClient, useWriteContract } from "wagmi";
 
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
-import { buildRedemptionCode } from "@/lib/format";
+import { getReadableErrorMessage } from "@/lib/errors";
 import { TOKEN_DECIMALS } from "@/lib/format";
 import { createRedemption } from "@/lib/supabase/mutations";
 
@@ -42,19 +42,28 @@ export function useRedeemReward() {
         args: [BigInt(params.rewardId)]
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      const record = await createRedemption({
-        address: params.address.toLowerCase(),
-        reward_id: params.rewardId,
-        reward_name: params.rewardName,
-        cost: Number(formatUnits(params.cost, TOKEN_DECIMALS)),
-        redemption_code: buildRedemptionCode(),
-        claimed: false,
-        claimed_at: null,
-        claimed_by: null,
-        tx_hash: hash,
-        block_number: Number(receipt.blockNumber),
-        redeemed_at: new Date().toISOString()
-      });
+      let record;
+      try {
+        record = await createRedemption({
+          address: params.address.toLowerCase(),
+          reward_id: params.rewardId,
+          reward_name: params.rewardName,
+          cost: formatUnits(params.cost, TOKEN_DECIMALS),
+          claimed: false,
+          claimed_at: null,
+          claimed_by: null,
+          tx_hash: hash,
+          block_number: Number(receipt.blockNumber),
+          redeemed_at: new Date().toISOString()
+        });
+      } catch (error) {
+        throw new Error(
+          `Redemption confirmed on-chain, but saving the redemption record failed. Transaction: ${hash}. ${getReadableErrorMessage(
+            error,
+            "Please check the redemptions table configuration."
+          )}`
+        );
+      }
       return { receipt, record };
     } finally {
       setPending(false);
