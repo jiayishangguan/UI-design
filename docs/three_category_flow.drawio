@@ -1,0 +1,106 @@
+<mxfile host="app.diagrams.net" modified="2026-04-27T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="three-category-flow" name="三类流程图">
+    <mxGraphModel dx="1200" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="CampusSwap 三类流程图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=24;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="330" y="30" width="500" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="stage1" value="入口" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef2ff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="170" y="90" width="190" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="stage2" value="提交 / 操作" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef2ff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="360" y="90" width="230" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="stage3" value="审核 / 决策" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef2ff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="590" y="90" width="250" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="stage4" value="结果" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef2ff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="840" y="90" width="210" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-user" value="用户" style="swimlane;html=1;startSize=44;horizontal=0;fillColor=#ffffff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="90" y="134" width="960" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-verifier" value="验证者" style="swimlane;html=1;startSize=44;horizontal=0;fillColor=#ffffff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="90" y="264" width="960" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-system" value="委员会 / 系统" style="swimlane;html=1;startSize=44;horizontal=0;fillColor=#ffffff;strokeColor=#94a3b8;fontStyle=1;fontColor=#172033;" vertex="1" parent="1">
+          <mxGeometry x="90" y="394" width="960" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="u1" value="连接钱包&#xa;登录账户" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#172033;" vertex="1" parent="lane-user">
+          <mxGeometry x="100" y="38" width="140" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="u2" value="提交环保活动&#xa;或发起兑换" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#172033;" vertex="1" parent="lane-user">
+          <mxGeometry x="310" y="38" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="u3" value="等待审核结果" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#172033;" vertex="1" parent="lane-user">
+          <mxGeometry x="565" y="38" width="140" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="u4" value="获得积分 / 代币&#xa;完成奖励兑换" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#172033;" vertex="1" parent="lane-user">
+          <mxGeometry x="780" y="38" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="v1" value="进入验证者面板" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dbeafe;strokeColor=#2563eb;fontColor=#172033;" vertex="1" parent="lane-verifier">
+          <mxGeometry x="100" y="38" width="140" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="v2" value="查看待审核任务&#xa;读取证明材料" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dbeafe;strokeColor=#2563eb;fontColor=#172033;" vertex="1" parent="lane-verifier">
+          <mxGeometry x="310" y="38" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="v3" value="通过 / 驳回&#xa;链上确认" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dbeafe;strokeColor=#2563eb;fontColor=#172033;" vertex="1" parent="lane-verifier">
+          <mxGeometry x="565" y="38" width="140" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="v4" value="更新活动状态&#xa;记录审核结果" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dbeafe;strokeColor=#2563eb;fontColor=#172033;" vertex="1" parent="lane-verifier">
+          <mxGeometry x="780" y="38" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" value="配置合约地址&#xa;同步环境" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#fef3c7;strokeColor=#d97706;fontColor=#172033;" vertex="1" parent="lane-system">
+          <mxGeometry x="100" y="38" width="140" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="创建治理提案&#xa;设置奖励参数" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#fef3c7;strokeColor=#d97706;fontColor=#172033;" vertex="1" parent="lane-system">
+          <mxGeometry x="310" y="38" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="委员会投票&#xa;达到通过条件" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#fef3c7;strokeColor=#d97706;fontColor=#172033;" vertex="1" parent="lane-system">
+          <mxGeometry x="565" y="38" width="140" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="执行提案&#xa;生效新规则" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#fef3c7;strokeColor=#d97706;fontColor=#172033;" vertex="1" parent="lane-system">
+          <mxGeometry x="780" y="38" width="150" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u1-u2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#16a34a;" edge="1" parent="lane-user" source="u1" target="u2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u2-u3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#16a34a;" edge="1" parent="lane-user" source="u2" target="u3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u3-u4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#16a34a;" edge="1" parent="lane-user" source="u3" target="u4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-v1-v2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#2563eb;" edge="1" parent="lane-verifier" source="v1" target="v2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-v2-v3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#2563eb;" edge="1" parent="lane-verifier" source="v2" target="v3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-v3-v4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#2563eb;" edge="1" parent="lane-verifier" source="v3" target="v4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-s1-s2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#d97706;" edge="1" parent="lane-system" source="s1" target="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-s2-s3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#d97706;" edge="1" parent="lane-system" source="s2" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-s3-s4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#d97706;" edge="1" parent="lane-system" source="s3" target="s4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u2-v2" value="提交后进入待审池" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;strokeColor=#64748b;fontColor=#475569;" edge="1" parent="1" source="u2" target="v2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-v3-u4" value="审核通过后发放" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;strokeColor=#64748b;fontColor=#475569;" edge="1" parent="1" source="v3" target="u4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-s4-u4" value="规则影响奖励" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;strokeColor=#64748b;fontColor=#475569;" edge="1" parent="1" source="s4" target="u4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
