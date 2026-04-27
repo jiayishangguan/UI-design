@@ -80,7 +80,7 @@ export default function HomePage() {
       <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <Card className="animate-fade-up [animation-delay:220ms]">
           <p className="text-xs uppercase tracking-[0.18em] text-white/40">How CampusSwap works</p>
-          <h2 className="mt-4 font-serif text-4xl text-white">Got an action to share?</h2>
+          <h2 className="mt-4 font-serif text-4xl text-white">Show your green campus impact</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
             Add a clear proof image, tell verifiers what happened, and let the review flow turn approved campus impact
             into GT. From there, your contribution history can grow into swaps, rewards, and higher levels.
