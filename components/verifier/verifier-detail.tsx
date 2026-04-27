@@ -20,7 +20,6 @@ export function VerifierDetail({
   slotVotes,
   actionError,
   onVote,
-  onFinalize,
   onReplace
 }: {
   task: {
@@ -56,7 +55,6 @@ export function VerifierDetail({
   }>;
   actionError?: string | null;
   onVote: (approve: boolean) => Promise<unknown>;
-  onFinalize: () => Promise<unknown>;
   onReplace: (slot: number, approve: boolean) => Promise<unknown>;
 }) {
   const nowSeconds = Date.now() / 1000;
@@ -75,7 +73,7 @@ export function VerifierDetail({
       : phase === "Cooldown"
         ? `Voting opens after the ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown.`
         : phase === "Expired"
-          ? "The standard voting window has ended. Committee replacement or finalization is now available."
+          ? "The standard voting window has ended. Committee members can replace missing votes."
           : null;
   const votingIntro =
     phaseId === 0
@@ -158,9 +156,6 @@ export function VerifierDetail({
           </Button>
           <Button variant="danger" disabled={!isAssigned || hasVoted || phase !== "Voting"} onClick={() => onVote(false)}>
             Reject
-          </Button>
-          <Button variant="secondary" disabled={phase !== "Expired"} onClick={onFinalize}>
-            Finalize Expired
           </Button>
         </div>
         {isCommitteeMember ? (
