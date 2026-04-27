@@ -17,6 +17,7 @@ import { Select } from "@/components/common/select";
 import { Textarea } from "@/components/common/textarea";
 
 const PROPOSALS_PER_PAGE = 3;
+const ACTION_OPTION_GROUPS = ["Membership", "Pool", "Token permissions", "Token operations", "Rewards", "System"] as const;
 
 // The getDefaultTarget function is a helper function that determines the default target contract address based on the selected action type. It checks the action type number against predefined sets of action types and returns the corresponding contract address for each set. If the action type does not match any of the predefined sets, it returns a default zero address. This function is used to automatically populate the target contract field when creating a new proposal, ensuring that the correct contract is targeted based on the chosen governance action.
 function getDefaultTarget(actionTypeNumber: number) {
@@ -108,10 +109,14 @@ export function GovernancePanel({
             Committee members returned by the contract: {members.length}
           </div>
           <Select value={actionType} onChange={(event) => setActionType(event.target.value)}>
-            {ACTION_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
+            {ACTION_OPTION_GROUPS.map((group) => (
+              <optgroup key={group} label={group}>
+                {ACTION_TYPE_OPTIONS.filter((option) => option.group === group).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </Select>
           <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/[0.05] p-5">
@@ -190,11 +195,15 @@ export function GovernancePanel({
             value={proposalActionFilter}
             onChange={(event) => setProposalActionFilter(event.target.value)}
           >
-            <option value="all">ALL_PROPOSALS</option>
-            {ACTION_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={String(option.value)}>
-                {option.label}
-              </option>
+            <option value="all">All proposals</option>
+            {ACTION_OPTION_GROUPS.map((group) => (
+              <optgroup key={group} label={group}>
+                {ACTION_TYPE_OPTIONS.filter((option) => option.group === group).map((option) => (
+                  <option key={option.value} value={String(option.value)}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </Select>
         </div>

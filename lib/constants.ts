@@ -48,18 +48,18 @@ export function getLevelMeta(tier: number) {
 }
 
 export const ACTION_TYPE_OPTIONS = [
-  { value: 0, label: "ADD_MEMBER" },
-  { value: 1, label: "REMOVE_MEMBER" },
-  { value: 2, label: "INIT_POOL" },
-  { value: 3, label: "INJECT_BUFFER" },
-  { value: 4, label: "SET_GT_MINTER" },
-  { value: 5, label: "SET_RT_MINTER" },
-  { value: 6, label: "MINT_RT" },
-  { value: 7, label: "ADD_REWARD" },
-  { value: 8, label: "REMOVE_REWARD" },
-  { value: 9, label: "GENERIC_CALL" },
-  { value: 10, label: "MINT_GT" },
-  { value: 11, label: "LOCK_START" }
+  { value: 0, label: "Add committee member", group: "Membership" },
+  { value: 1, label: "Remove committee member", group: "Membership" },
+  { value: 2, label: "Initialize GT/RT pool", group: "Pool" },
+  { value: 3, label: "Add RT buffer", group: "Pool" },
+  { value: 4, label: "Set GT minter", group: "Token permissions" },
+  { value: 5, label: "Set RT minter", group: "Token permissions" },
+  { value: 10, label: "Mint GT", group: "Token operations" },
+  { value: 6, label: "Mint RT", group: "Token operations" },
+  { value: 7, label: "Add reward", group: "Rewards" },
+  { value: 8, label: "Remove reward", group: "Rewards" },
+  { value: 11, label: "Start lock period", group: "System" },
+  { value: 9, label: "Advanced contract call", group: "System" }
 ] as const;
 
 export type GovernanceFieldConfig = {

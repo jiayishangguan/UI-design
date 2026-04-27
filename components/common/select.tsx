@@ -23,6 +23,11 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
 
       if (child.type === "optgroup") {
         return cloneElement(child, {
+          style: {
+            color: "#4b5563",
+            backgroundColor: "#ffffff",
+            ...(child.props.style ?? {})
+          },
           children: normalizeChildren(child.props.children)
         });
       }
