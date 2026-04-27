@@ -51,13 +51,15 @@ describe("CommitteeManager", function () {
       committee.connect(members[0]).propose(ActionType.SET_GT_MINTER, greenToken.target, "0x")
     ).to.be.revertedWithCustomError(committee, "EmptyProposalData");
 
+    const proposalData = encode(["address"], [members[3].address]);
     await committee
       .connect(members[0])
-      .propose(ActionType.ADD_MEMBER, ethers.ZeroAddress, encode(["address"], [members[3].address]));
+      .propose(ActionType.ADD_MEMBER, ethers.ZeroAddress, proposalData);
 
     const proposal = await committee.getProposal(0);
     expect(proposal.proposer).to.equal(members[0].address);
     expect(proposal.approvalCount).to.equal(1);
+    expect(await committee.getProposalData(0)).to.equal(proposalData);
     expect(await committee.hasApproved(0, members[0].address)).to.equal(true);
   });
 

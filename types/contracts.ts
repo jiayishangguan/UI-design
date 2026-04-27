@@ -26,6 +26,7 @@ export type GovernanceProposal = {
   id: number;
   actionType: number;
   targetContract: string;
+  data?: `0x${string}`;
   proposer: string;
   approvalCount: bigint;
   status: number;

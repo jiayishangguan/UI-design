@@ -33,12 +33,12 @@ export type RedemptionRecord = {
   address: string;
   reward_id: number;
   reward_name: string;
-  cost: number;
-  redemption_code: string;
+  cost: number | string;
+  redemption_code?: string | null;
   claimed: boolean;
   claimed_at: string | null;
   claimed_by: string | null;
-  tx_hash: string | null;
+  tx_hash: string;
   block_number: number | null;
   redeemed_at?: string;
 };
