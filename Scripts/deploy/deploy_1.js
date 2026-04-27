@@ -1,26 +1,18 @@
-
-
-const hre = require("hardhat");
-const fs = require("fs");
-const path = require("path");
+const hardhat = require("hardhat");
+require("dotenv").config();
 
 async function main() {
-  const { ethers, network } = hre;
+  const { ethers, network } = hardhat;
 
-  // set initial informatiom
-  const FOUNDING_MEMBER_1 = "TODO_MEMBER_1";
-  const FOUNDING_MEMBER_2 = "TODO_MEMBER_2";
-  const FOUNDING_MEMBER_3 = "TODO_MEMBER_3";
+  const FOUNDING_MEMBER_1 = process.env.FOUNDING_MEMBER_1;
+  const FOUNDING_MEMBER_2 = process.env.FOUNDING_MEMBER_2;
+  const FOUNDING_MEMBER_3 = process.env.FOUNDING_MEMBER_3;
 
-  const MEMBER_4 = "TODO_MEMBER_4";
-  const MEMBER_5 = "TODO_MEMBER_5";
+  const GT_NAME = process.env.GT_NAME;
+  const GT_SYMBOL = process.env.GT_SYMBOL;
 
-
-  const GT_NAME = "TODO_GT_NAME";
-  const GT_SYMBOL = "TODO_GT_SYMBOL";
-
-  const RT_NAME = "TODO_RT_NAME";
-  const RT_SYMBOL = "TODO_RT_SYMBOL";
+  const RT_NAME = process.env.RT_NAME;
+  const RT_SYMBOL = process.env.RT_SYMBOL;
 
   const [deployer] = await ethers.getSigners();
 
@@ -74,7 +66,7 @@ async function main() {
   const ammPool = await AMMPool.deploy(
     await greenToken.getAddress(),
     await rewardToken.getAddress(),
-    await committeeManager.getAddress(),
+    await committeeManager.getAddress()
   );
   await ammPool.waitForDeployment();
 
@@ -87,64 +79,9 @@ async function main() {
   );
   await rewardRedemption.waitForDeployment();
 
-  const output = {
-    network: network.name,
-    deployer: deployer.address,
-    foundingMembers: [
-      FOUNDING_MEMBER_1,
-      FOUNDING_MEMBER_2,
-      FOUNDING_MEMBER_3,
-    ],
-    futureMembers: [
-      MEMBER_4,
-      MEMBER_5,
-    ],
-    GT: {
-      name: GT_NAME,
-      symbol: GT_SYMBOL,
-    },
-    RT: {
-      name: RT_NAME,
-      symbol: RT_SYMBOL,
-    },
-    contracts: {
-      CommitteeManager: {
-        address: await committeeManager.getAddress(),
-        txHash: committeeManager.deploymentTransaction().hash,
-      },
-      GreenToken: {
-        address: await greenToken.getAddress(),
-        txHash: greenToken.deploymentTransaction().hash,
-      },
-      RewardToken: {
-        address: await rewardToken.getAddress(),
-        txHash: rewardToken.deploymentTransaction().hash,
-      },
-      VerifierManager: {
-        address: await verifierManager.getAddress(),
-        txHash: verifierManager.deploymentTransaction().hash,
-      },
-      ActivityVerification: {
-        address: await activityVerification.getAddress(),
-        txHash: activityVerification.deploymentTransaction().hash,
-      },
-      AMMPool: {
-        address: await ammPool.getAddress(),
-        txHash: ammPool.deploymentTransaction().hash,
-      },
-      RewardRedemption: {
-        address: await rewardRedemption.getAddress(),
-        txHash: rewardRedemption.deploymentTransaction().hash,
-      },
-    },
-  };
 
-  const deploymentsDir = path.join(__dirname, "..", "..", "deployments");
-  fs.mkdirSync(deploymentsDir, { recursive: true });
-
-  const outputPath = path.join(deploymentsDir, `${network.name}.json`);
-  fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), "utf8");
-
+  console.log("Network:", network.name);
+  console.log("Deployer:", deployer.address);
   console.log("CommitteeManager:", await committeeManager.getAddress());
   console.log("GreenToken:", await greenToken.getAddress());
   console.log("RewardToken:", await rewardToken.getAddress());
@@ -152,7 +89,14 @@ async function main() {
   console.log("ActivityVerification:", await activityVerification.getAddress());
   console.log("AMMPool:", await ammPool.getAddress());
   console.log("RewardRedemption:", await rewardRedemption.getAddress());
-  console.log("JSON:", outputPath);
+
+  console.log("CommitteeManager tx:", committeeManager.deploymentTransaction().hash);
+  console.log("GreenToken tx:", greenToken.deploymentTransaction().hash);
+  console.log("RewardToken tx:", rewardToken.deploymentTransaction().hash);
+  console.log("VerifierManager tx:", verifierManager.deploymentTransaction().hash);
+  console.log("ActivityVerification tx:", activityVerification.deploymentTransaction().hash);
+  console.log("AMMPool tx:", ammPool.deploymentTransaction().hash);
+  console.log("RewardRedemption tx:", rewardRedemption.deploymentTransaction().hash);
 }
 
 main().catch((error) => {
