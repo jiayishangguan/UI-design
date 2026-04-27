@@ -75,18 +75,18 @@ export function SubmitTaskForm({
     <Card className="max-w-5xl animate-fade-up">
       <h1 className="font-serif text-4xl text-white">Submit Activity</h1>
       <p className="mt-3 max-w-2xl text-white/60">
-        Profile is required for submission. Your evidence image goes through `/api/upload-ipfs`, and the contract call
-        always uses `submitTask(actionType, proofCID, 5)`.
+        Share a campus sustainability action with a clear proof image. Once verifiers approve it, the activity can earn
+        5 GT and appear in your dashboard history.
       </p>
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
-          Use an English action title and concise description for verifier clarity.
+          Give your activity a clear title and describe what happened so reviewers can understand it quickly.
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
-          The activity date now follows the latest Sepolia block date automatically. Manual date selection is disabled.
+          The activity date is set automatically from the latest Sepolia block, so it matches the on-chain record.
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
-          JPG, PNG, and WebP are supported. Maximum file size is 10 MB.
+          Upload one clear JPG, PNG, or WebP image. Maximum file size: 10 MB.
         </div>
       </div>
       <form
@@ -106,7 +106,7 @@ export function SubmitTaskForm({
             if (!actionType) throw new Error("Please choose an activity type.");
             if (!title) throw new Error("Please enter a short activity title.");
             if (!chainDateIso) throw new Error("The latest Sepolia date is still loading. Please wait a moment and try again.");
-            if (!description) throw new Error("Please enter a concise English description for the verifier.");
+            if (!description) throw new Error("Please describe the activity for the reviewers.");
             if (!(file instanceof File) || file.size === 0) throw new Error("Please choose an evidence image before submitting.");
 
             formData.set("activity_date", chainDateIso);
@@ -130,8 +130,8 @@ export function SubmitTaskForm({
             </option>
           ))}
         </Select>
-        <Input name="title" placeholder="Title" />
-        <Input name="location" placeholder="Location" />
+        <Input name="title" placeholder="Short activity title" />
+        <Input name="location" placeholder="Campus location" />
         <div className="rounded-[24px] border border-white/10 bg-white/[0.03] px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-white/40">Sepolia activity date</p>
           <p className="mt-2 text-white/80">{chainDateLabel}</p>
@@ -140,7 +140,7 @@ export function SubmitTaskForm({
         <Textarea
           className="md:col-span-2"
           name="description"
-          placeholder="Describe the action in English, including what happened, where it happened, and why it matters."
+          placeholder="Describe what you did, where it happened, and what the evidence image shows."
         />
         <div className="md:col-span-2 rounded-[24px] border border-white/10 bg-white/[0.03] p-4">
           <input
