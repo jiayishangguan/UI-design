@@ -15,6 +15,9 @@ import { Card } from "@/components/common/card";
 import { Input } from "@/components/common/input";
 import { Select } from "@/components/common/select";
 import { Textarea } from "@/components/common/textarea";
+
+const PROPOSALS_PER_PAGE = 3;
+
 // The getDefaultTarget function is a helper function that determines the default target contract address based on the selected action type. It checks the action type number against predefined sets of action types and returns the corresponding contract address for each set. If the action type does not match any of the predefined sets, it returns a default zero address. This function is used to automatically populate the target contract field when creating a new proposal, ensuring that the correct contract is targeted based on the chosen governance action.
 function getDefaultTarget(actionTypeNumber: number) {
   if ([2, 3].includes(actionTypeNumber)) return contractAddresses.AMMPool as `0x${string}`;
@@ -46,13 +49,33 @@ export function GovernancePanel({
   const [actionType, setActionType] = useState("7");
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [expandedProposalIds, setExpandedProposalIds] = useState<Record<number, boolean>>({});
+  const [proposalPage, setProposalPage] = useState(1);
+  const [proposalActionFilter, setProposalActionFilter] = useState("all");
 
   const actionTypeNumber = Number(actionType);
   const actionConfig = GOVERNANCE_ACTION_DETAILS[actionTypeNumber as keyof typeof GOVERNANCE_ACTION_DETAILS];
+  const sortedProposals = useMemo(() => {
+    return [...proposals]
+      .filter((proposal) => proposalActionFilter === "all" || String(proposal.actionType) === proposalActionFilter)
+      .sort((left, right) => right.id - left.id);
+  }, [proposalActionFilter, proposals]);
+  const proposalPageCount = Math.max(1, Math.ceil(sortedProposals.length / PROPOSALS_PER_PAGE));
+  const visibleProposals = useMemo(
+    () => sortedProposals.slice((proposalPage - 1) * PROPOSALS_PER_PAGE, proposalPage * PROPOSALS_PER_PAGE),
+    [proposalPage, sortedProposals]
+  );
 
   useEffect(() => {
     setFormValues({ ...actionConfig.defaults });
   }, [actionConfig]);
+
+  useEffect(() => {
+    setProposalPage((currentPage) => Math.min(currentPage, proposalPageCount));
+  }, [proposalPageCount]);
+
+  useEffect(() => {
+    setProposalPage(1);
+  }, [proposalActionFilter]);
 
   const targetContract = useMemo(() => {
     if (actionTypeNumber === 9) {
@@ -71,8 +94,8 @@ export function GovernancePanel({
       <Card className="min-w-0">
         <h1 className="font-serif text-4xl text-white">Governance</h1>
         <p className="mt-3 text-white/55">
-          Committee actions now use guided fields instead of raw JSON, so proposal creation stays readable for every
-          committee member.
+          The Governance page makes committee decision-making simple and transparent, allowing members to create,
+          review, approve, or reject proposals through a clear guided process.
         </p>
         <div className="mt-6 space-y-4">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
@@ -155,9 +178,28 @@ export function GovernancePanel({
         </div>
       </Card>
       <Card className="min-w-0">
-        <h2 className="font-serif text-3xl text-white">Open Proposals</h2>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="font-serif text-3xl text-white">Open Proposals</h2>
+            {sortedProposals.length ? (
+              <p className="mt-2 text-sm text-white/45">Showing newest first · {sortedProposals.length} total</p>
+            ) : null}
+          </div>
+          <Select
+            className="lg:max-w-[260px]"
+            value={proposalActionFilter}
+            onChange={(event) => setProposalActionFilter(event.target.value)}
+          >
+            <option value="all">ALL_PROPOSALS</option>
+            {ACTION_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={String(option.value)}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        </div>
         <div className="mt-6 space-y-4">
-          {proposals.map((proposal) => {
+          {visibleProposals.map((proposal) => {
             const actionLabel =
               GOVERNANCE_ACTION_DETAILS[proposal.actionType as keyof typeof GOVERNANCE_ACTION_DETAILS]?.title ??
               ACTION_TYPE_OPTIONS.find((item) => item.value === proposal.actionType)?.label ??
@@ -281,7 +323,51 @@ export function GovernancePanel({
               </div>
             );
           })}
+          {!visibleProposals.length ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-5 text-sm text-white/60">
+              No proposals are available yet.
+            </div>
+          ) : null}
         </div>
+        {proposalPageCount > 1 ? (
+          <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: proposalPageCount }, (_, index) => {
+                const pageNumber = index + 1;
+                const isCurrentPage = pageNumber === proposalPage;
+                return (
+                  <Button
+                    key={pageNumber}
+                    variant={isCurrentPage ? "secondary" : "ghost"}
+                    className="h-10 min-w-10 border border-white/10 px-3"
+                    aria-current={isCurrentPage ? "page" : undefined}
+                    onClick={() => setProposalPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="flex gap-3 lg:justify-end">
+              <Button
+                variant="ghost"
+                className="border border-white/10"
+                disabled={proposalPage === 1}
+                onClick={() => setProposalPage((currentPage) => Math.max(1, currentPage - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="ghost"
+                className="border border-white/10"
+                disabled={proposalPage === proposalPageCount}
+                onClick={() => setProposalPage((currentPage) => Math.min(proposalPageCount, currentPage + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </Card>
     </div>
   );
