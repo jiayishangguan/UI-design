@@ -28,21 +28,21 @@ export function Hero({ levelLabel, levelDescription }: { levelLabel: string; lev
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Activity review</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Verify</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              Each submitted activity enters review before GT is issued. Approved activities currently reward 5 GT.
+              Share real campus actions and let trusted review turn your effort into visible progress.
             </p>
           </div>
           <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Daily GT cap</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Swap</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              The system can mint up to 300 GT per day across all approved activities.
+              Move between GT and RT when you want to unlock more ways to use your earned value.
             </p>
           </div>
           <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Mint queue</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Redeem</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              If the daily cap is full, approved GT waits in a queue until daily mint capacity is available.
+              Turn digital recognition back into campus-life rewards, benefits, and shared momentum.
             </p>
           </div>
         </div>
