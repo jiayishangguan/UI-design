@@ -75,15 +75,15 @@ export function SubmitTaskForm({
     <Card className="max-w-5xl animate-fade-up">
       <h1 className="font-serif text-4xl text-white">Submit Activity</h1>
       <p className="mt-3 max-w-2xl text-white/60">
-        Share a campus sustainability action with a clear proof image. Once verifiers approve it, the activity can earn
-        5 GT and appear in your dashboard history.
+        Did something sustainable on campus? Tell us what happened, add a clear proof image, and send it for verifier
+        review. Approved activities can earn 5 GT and appear in your dashboard history.
       </p>
       <div className="mt-6 grid gap-3 md:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
-          Give your activity a clear title and describe what happened so reviewers can understand it quickly.
+          Keep it specific: what you did, where it happened, and what the proof shows.
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
-          The activity date is set automatically from the latest Sepolia block, so it matches the on-chain record.
+          The activity date is set automatically from the current on-chain time.
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/60">
           Upload one clear JPG, PNG, or WebP image. Maximum file size: 10 MB.
@@ -133,7 +133,7 @@ export function SubmitTaskForm({
         <Input name="title" placeholder="Short activity title" />
         <Input name="location" placeholder="Campus location" />
         <div className="rounded-[24px] border border-white/10 bg-white/[0.03] px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.18em] text-white/40">Sepolia activity date</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-white/40">On-chain activity date</p>
           <p className="mt-2 text-white/80">{chainDateLabel}</p>
           <input name="activity_date" type="hidden" value={chainDateIso} readOnly />
         </div>
@@ -156,7 +156,7 @@ export function SubmitTaskForm({
           />
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.18em] text-white/40">Evidence upload</p>
+              <p className="text-sm uppercase tracking-[0.18em] text-white/40">Proof image</p>
               <p className="mt-2 text-sm text-white/65">{fileName}</p>
             </div>
             <Button
