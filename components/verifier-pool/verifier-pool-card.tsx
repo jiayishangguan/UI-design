@@ -5,6 +5,7 @@ import { Button } from "@/components/common/button";
 import { Card } from "@/components/common/card";
 import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS } from "@/lib/constants";
 import { formatDisplayToken, formatToken } from "@/lib/format";
+import { CheckCircle2, DoorOpen, ShieldCheck, WalletCards } from "lucide-react";
 // The component receives various props related to the verifier pool, such as the current threshold for joining, the user's stake amount, the minimum stake required to avoid auto-removal, the current governance phase, the user's verifier status, the number of active tasks and verifiers, and the list of committee members. It also receives callback functions for approving the stake, joining the pool, and leaving the pool.
 export function VerifierPoolCard({
   threshold,
@@ -34,39 +35,47 @@ export function VerifierPoolCard({
   const isActive = verifier?.[6] ?? false;
   const currentPhase = phase ?? 0;
   const activeCount = Number(activeVerifierCount ?? 0n);
+  const activeTaskLabel = formatDisplayToken(Number(activeTaskCount ?? 0n), 0);
+  const joinStakeLabel = stakeAmount !== undefined ? `${formatToken(stakeAmount)} GT` : "the required GT stake";
+  const nextStepMessage = isActive
+    ? activeTaskCount && activeTaskCount > 0n
+      ? `You're in the pool. You currently have ${activeTaskLabel} active review task${activeTaskLabel === "1" ? "" : "s"}.`
+      : "You're in the pool. New review tasks will appear below when they are assigned to you."
+    : `To join, approve ${joinStakeLabel} first, then click Join verifier pool.`;
   const nextPhaseMessage =
     activeCount >= 10
-      ? "Phase 3 is active. The verifier pool alone now handles review assignment."
+      ? "The verifier pool is fully active. Reviews are now assigned to active verifiers."
       : activeCount >= 5
-        ? `Phase 2 is active. Add ${10 - activeCount} more active verifier${10 - activeCount === 1 ? "" : "s"} to reach Phase 3.`
-        : `Phase 1 is active. Add ${5 - activeCount} more active verifier${5 - activeCount === 1 ? "" : "s"} to unlock Phase 2.`;
+        ? `${10 - activeCount} more active verifier${10 - activeCount === 1 ? "" : "s"} will unlock the final review mode.`
+        : `${5 - activeCount} more active verifier${5 - activeCount === 1 ? "" : "s"} will unlock a larger review pool.`;
 // The component uses the received props to display relevant information about the verifier pool and the user's status, as well as to manage the state of the join and leave actions. It also provides feedback on the current phase of governance and what is required to reach the next phase, encouraging users to join the verifier pool to advance the governance process.
   return (
     <Card>
       <h1 className="font-serif text-4xl text-white">Become a Verifier</h1>
       <p className="mt-3 text-white/55">
-        Profile is mandatory here. Joining requires GT balance threshold plus approve of the 100 GT stake.
+        Help review campus activities and keep rewards fair. You will need a profile, enough GT to qualify, and a small
+        stake approved from your wallet before joining.
       </p>
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-sm text-white/50">Threshold</p>
+          <p className="text-sm text-white/50">GT needed to qualify</p>
           <p className="mt-3 font-serif text-3xl text-white">{threshold !== undefined ? formatToken(threshold) : "—"} GT</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-sm text-white/50">Stake Amount</p>
+          <p className="text-sm text-white/50">Stake to join</p>
           <p className="mt-3 font-serif text-3xl text-white">{stakeAmount !== undefined ? formatToken(stakeAmount) : "—"} GT</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-sm text-white/50">Auto-removal floor</p>
+          <p className="text-sm text-white/50">Keep at least</p>
           <p className="mt-3 font-serif text-3xl text-white">{minStake !== undefined ? formatToken(minStake) : "—"} GT</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-sm text-white/50">Governance phase</p>
+          <p className="text-sm text-white/50">Review mode</p>
           <p className="mt-3 font-serif text-3xl text-white">{phase !== undefined ? GOVERNANCE_PHASE_LABELS[phase] : "—"}</p>
         </div>
       </div>
       <div className="mt-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/[0.05] p-5">
-        <p className="text-xs uppercase tracking-[0.2em] text-emerald-100/55">Phase logic from the contract</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-emerald-100/55">How reviews work right now</p>
         <p className="mt-3 text-sm leading-7 text-white/70">{GOVERNANCE_PHASE_DETAILS[currentPhase] ?? GOVERNANCE_PHASE_DETAILS[0]}</p>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
@@ -74,31 +83,41 @@ export function VerifierPoolCard({
             <p className="mt-2 font-serif text-3xl text-white">{formatDisplayToken(activeCount, 0)}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Committee members</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Committee backup</p>
             <p className="mt-2 font-serif text-3xl text-white">{formatDisplayToken(committeeMembers?.length ?? 0, 0)}</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Your verifier status</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/40">Your status</p>
             <p className="mt-2 font-serif text-3xl text-white">{isActive ? "Joined" : "Not joined"}</p>
           </div>
         </div>
         <p className="mt-4 text-sm leading-7 text-white/60">{nextPhaseMessage}</p>
         <p className="mt-3 text-sm leading-7 text-white/45">
-          Contract rule: only active verifier-pool members count toward phase upgrades. Committee size does not increase
-          the phase threshold directly, but committee wallets are used as the review pool during Phase 1.
+          Only active verifier-pool members count toward review mode upgrades. In the earliest mode, committee members
+          can help cover reviews while the verifier pool grows.
         </p>
       </div>
-      <div className="mt-8 flex items-center gap-3">
-        <Badge tone={isActive ? "success" : "warning"}>{isActive ? "Active verifier" : "Not joined"}</Badge>
-        <span className="text-sm text-white/55">Active tasks: {formatDisplayToken(Number(activeTaskCount ?? 0n), 0)}</span>
+      <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <Badge tone={isActive ? "success" : "warning"}>{isActive ? "Active verifier" : "Not joined yet"}</Badge>
+            <span className="text-sm text-white/55">Active tasks: {activeTaskLabel}</span>
+          </div>
+          <p className="text-sm text-white/65">{nextStepMessage}</p>
+        </div>
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
         <Button variant="secondary" onClick={onApproveStake}>
-          Approve 100 GT
+          <WalletCards className="mr-2 h-4 w-4" aria-hidden="true" />
+          Approve stake
         </Button>
-        <Button onClick={onJoin}>Join Pool</Button>
-        <Button variant="ghost" onClick={onLeave}>
-          Leave Pool
+        <Button onClick={onJoin} disabled={isActive}>
+          <ShieldCheck className="mr-2 h-4 w-4" aria-hidden="true" />
+          Join verifier pool
+        </Button>
+        <Button variant="ghost" onClick={onLeave} disabled={!isActive}>
+          {isActive ? <DoorOpen className="mr-2 h-4 w-4" aria-hidden="true" /> : <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />}
+          Leave pool
         </Button>
       </div>
     </Card>
