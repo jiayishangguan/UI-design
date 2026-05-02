@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* We use this file to control the main visual style of the app. It gives CampusSwap a dark green theme with soft background effects. */
 :root {
   color-scheme: dark;
 }
@@ -90,6 +91,8 @@ select optgroup {
 .animate-drift {
   animation: drift 14s ease-in-out infinite;
 }
+
+/* We add small animations and glass effects to make the UI feel more modern. */
 
 .panel-3d {
   box-shadow:

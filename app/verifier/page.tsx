@@ -1,5 +1,8 @@
 "use client";
-// The VerifierPage component serves as the main interface for users to interact with the verifier system.
+
+// We use this page for the verifier area.
+// It shows verifier pool details and tasks waiting for review.
+
 import { useEffect, useMemo, useState } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 
@@ -15,7 +18,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { useVerifierPool } from "@/hooks/use-verifier-pool";
 import { TASK_COOLDOWN_SECONDS } from "@/lib/constants";
 import { getVerifierTasks } from "@/lib/supabase/queries";
-// The component retrieves the connected wallet and checks if the user has a profile. If the user does not have a profile, a dialog is displayed prompting them to create one before they can access the verifier functionalities.
+
 export default function VerifierPage() {
   const wallet = useAppWallet();
   const { hasProfile, saveProfile } = useProfile(wallet.address);
@@ -98,6 +101,7 @@ export default function VerifierPage() {
     query: { enabled: Boolean(wallet.address) }
   });
 
+  // We combine task data with on-chain review status.
   const queueTasks = useMemo(
     () => {
       const nowSeconds = Math.floor(Date.now() / 1000);
@@ -129,7 +133,7 @@ export default function VerifierPage() {
     },
     [assignmentReads.data, taskMetaReads.data, tasks, wallet.address]
   );
-// The component uses several useReadContract and useReadContracts hooks to load data related to the task, including the task details, the user's voting status, the list of assigned verifiers, and metadata about the review phase and verifier status.
+
   return (
     <>
       <div className="space-y-8">
@@ -158,6 +162,7 @@ export default function VerifierPage() {
         open={profileDialogOpen}
         onClose={() => setProfileDialogOpen(false)}
         onSave={async (input) => {
+          // We save the profile before the user uses verifier features.
           await saveProfile(input);
           setProfileDialogOpen(false);
         }}

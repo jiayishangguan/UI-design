@@ -6,6 +6,8 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "./providers";
 import "./globals.css";
 
+// We use this layout as the main wrapper for the whole app. It adds shared providers, the app shell, and global styles.
+
 export const metadata: Metadata = {
   title: "CampusSwap",
   description: "Campus sustainability dashboard for GT/RT, verifier flows, rewards and governance."

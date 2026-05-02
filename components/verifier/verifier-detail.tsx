@@ -1,5 +1,8 @@
 "use client";
-// The VerifierDetail component provides a detailed view of a specific task that is under review in the governance system. It displays information about the task, including its action type, proof, rewards, and current voting status. The component also provides controls for assigned reviewers to vote on the task, as well as options for committee members to finalize expired tasks or replace missing votes. The component manages the state of the voting process and handles user interactions for voting and finalizing tasks.
+
+// We use this component to show the full review task.
+// It shows proof, vote status, and reviewer actions.
+
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
@@ -8,7 +11,7 @@ import { Card } from "@/components/common/card";
 import { GOVERNANCE_PHASE_DETAILS, GOVERNANCE_PHASE_LABELS, TASK_COOLDOWN_SECONDS, TASK_VOTING_WINDOW_SECONDS } from "@/lib/constants";
 import { formatRelativeCountdown } from "@/lib/format";
 import { getIpfsGatewayUrl } from "@/lib/ipfs";
-// The component receives various props related to the task and the user's role in the review process, such as whether the user is an assigned reviewer, a committee member, or an active verifier. It uses this information to determine what controls and information to display to the user, as well as to manage the state of voting and any actions taken on the task.
+
 export function VerifierDetail({
   task,
   mirroredTask,
@@ -97,7 +100,8 @@ export function VerifierDetail({
       : phaseId === 1
         ? `Phase 2 is active. Committee and eligible verifier-pool wallets can appear in the assigned reviewer set. Voting opens after the mandatory ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and stays open for ${Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.`
         : `Phase 3 is active. Activity review now runs through the verifier pool only. Voting opens after the mandatory ${Math.floor(TASK_COOLDOWN_SECONDS / 60)}-minute cooldown and stays open for ${Math.floor(TASK_VOTING_WINDOW_SECONDS / 60)} minutes.`;
-// The component uses the useMemo hook to calculate the URL of the proof image based on the CID, and it manages a state variable to track whether the image failed to load. It also calculates the reason why voting might be blocked for the current user based on their role and the current phase of governance, which is used to display appropriate messages in the UI.
+
+  // We check if the current wallet can vote or if voting is blocked.
   return (
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
       <Card>

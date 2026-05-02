@@ -1,5 +1,8 @@
 "use client";
-// The VerifierDetailPage component is responsible for displaying the details of a specific verification task and allowing verifiers to interact with it.
+
+// We use this page to show one verifier task in detail.
+// Verifiers can vote, and committee members can manage review actions.
+
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
@@ -12,7 +15,7 @@ import { contractAddresses } from "@/lib/contracts/addresses";
 import { getReadableContractError } from "@/lib/errors";
 import { getTaskByOnChainId } from "@/lib/supabase/queries";
 import type { TaskRecord } from "@/types/database";
-// The component retrieves the task ID from the URL parameters and uses it to load the corresponding on-chain task data.
+
 export default function VerifierDetailPage() {
   const params = useParams<{ id: string }>();
   const wallet = useAppWallet();
@@ -27,7 +30,7 @@ export default function VerifierDetailPage() {
   const { writeContractAsync } = useWriteContract();
   const [actionError, setActionError] = useState<string | null>(null);
   const [mirroredTask, setMirroredTask] = useState<TaskRecord | null>(null);
-  // The component uses several useReadContract and useReadContracts hooks to load data related to the task, including the task details, the user's voting status, the list of assigned verifiers, and metadata about the review phase and verifier status.
+
   const task = useReadContract({
     address: contractAddresses.ActivityVerification as `0x${string}`,
     abi: abis.ActivityVerification,
@@ -106,7 +109,7 @@ export default function VerifierDetailPage() {
       : [];
   const slotVoteReads = useReadContracts({
     // Wagmi is stricter than the generated ABI typing here; runtime shape is valid.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     contracts: slotVoteContracts as any,
     query: { enabled: taskId !== null && verifierAddresses.length > 0 }
   });
@@ -114,7 +117,7 @@ export default function VerifierDetailPage() {
     const verifiers = verifierAddresses;
     return Boolean(wallet.address && verifiers?.some((verifier) => verifier.toLowerCase() === wallet.address?.toLowerCase()));
   }, [verifierAddresses, wallet.address]);
-    // The useEffect hook is used to load the mirrored task data from the database based on the on-chain task ID. This allows the component to display additional information about the task that may not be stored on-chain.
+
   useEffect(() => {
     let active = true;
 
@@ -123,6 +126,7 @@ export default function VerifierDetailPage() {
       return;
     }
 
+    // We load extra task details from Supabase using the on-chain task id.
     getTaskByOnChainId(Number(taskId))
       .then((taskRecord) => {
         if (active) {
@@ -144,8 +148,7 @@ export default function VerifierDetailPage() {
     if (!publicClient) throw new Error("Public client unavailable");
     return publicClient.waitForTransactionReceipt({ hash });
   }
-// The sendActivityVerificationTx function is a helper function that simulates and sends a transaction to the blockchain for a given action (voting, finalizing, or replacing a vote) on the verification task. 
-// It handles errors and updates the component state accordingly.
+
   async function sendActivityVerificationTx(
     functionName: "voteOnTask" | "finalizeExpiredTask" | "committeeReplaceVote",
     args: readonly unknown[]
@@ -153,6 +156,7 @@ export default function VerifierDetailPage() {
     if (!publicClient) throw new Error("Public client unavailable");
     if (!wallet.address) throw new Error("A connected wallet is required.");
 
+    // We simulate the contract call first, then send the real transaction.
     const simulation = await publicClient.simulateContract({
       account: wallet.address as `0x${string}`,
       address: contractAddresses.ActivityVerification as `0x${string}`,
@@ -195,7 +199,7 @@ export default function VerifierDetailPage() {
       />
     );
   }
-// If the task data is successfully loaded, the component renders the VerifierDetail component, passing all the relevant data and functions as props to allow the user to interact with the verification task (e.g., voting, finalizing, replacing votes).
+
   return (
     <VerifierDetail
       task={{

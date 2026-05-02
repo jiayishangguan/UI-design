@@ -1,5 +1,8 @@
 "use client";
-// The RewardsCatalog component is responsible for displaying a catalog of rewards that users can redeem using their RT tokens. It receives an array of RewardCatalogItem objects as a prop, which contain information about each reward, such as its name, base cost, current cost, and active status. The component renders a grid of cards, each representing a reward item. If there are no active rewards in the catalog, it displays an empty state message indicating that there are no active rewards available. Each reward card includes details about the reward and buttons to approve the necessary RT tokens and redeem the reward, with the buttons being disabled if the reward is inactive.
+
+// We use this component to show all active rewards.
+// Users can approve RT first and then redeem a reward.
+
 import { useState } from "react";
 
 import type { RewardCatalogItem } from "@/types/contracts";
@@ -30,7 +33,7 @@ export function RewardsCatalog({
       />
     );
   }
-// The component renders a grid of cards, each representing a reward item. If there are no active rewards in the catalog, it displays an empty state message indicating that there are no active rewards available. Each reward card includes details about the reward and buttons to approve the necessary RT tokens and redeem the reward, with the buttons being disabled if the reward is inactive.
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {items.map((item) => {
@@ -68,6 +71,7 @@ export function RewardsCatalog({
                   setBusyAction(`approve-${item.id}`);
                   setMessage(null);
                   try {
+                    // We approve enough RT before the reward can be redeemed.
                     await onApprove(currentCost);
                     setMessage({ itemId: item.id, tone: "success", text: "RT approval confirmed." });
                   } catch (error) {
@@ -89,6 +93,7 @@ export function RewardsCatalog({
                   setBusyAction(`redeem-${item.id}`);
                   setMessage(null);
                   try {
+                    // We redeem the selected reward and show a status message.
                     await onRedeem(item);
                     setMessage({ itemId: item.id, tone: "success", text: "Reward redeemed. Opening your redemption code." });
                   } catch (error) {

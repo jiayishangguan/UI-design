@@ -1,5 +1,8 @@
 "use client";
-// The RewardsPage component is responsible for displaying the rewards catalog and handling the redemption process.
+
+// We use this page to show the rewards catalog.
+// It checks wallet and profile before the user can redeem rewards.
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useReadContract } from "wagmi";
@@ -13,8 +16,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { useRedeemReward } from "@/hooks/use-redeem-reward";
 import { abis } from "@/lib/contracts/abis";
 import { contractAddresses } from "@/lib/contracts/addresses";
-// The component retrieves the connected wallet and checks if the user has a profile. 
-// If the user does not have a profile, a dialog is displayed prompting them to create one before they can redeem rewards.
+
 export default function RewardsPage() {
   const router = useRouter();
   const wallet = useAppWallet();
@@ -27,8 +29,9 @@ export default function RewardsPage() {
     functionName: "getCatalog"
   });
   const [items, setItems] = useState<RewardCatalogItem[]>([]);
-// The component also loads the rewards catalog from the blockchain and displays it using the RewardsCatalog component.
+
   useEffect(() => {
+    // We load active rewards from the contract and update their current cost.
     const catalog = (catalogRead.data as { name: string; baseCost: bigint; active: boolean }[] | undefined) ?? [];
     Promise.all(
       catalog.map(async (item, id) => {
@@ -48,7 +51,7 @@ export default function RewardsPage() {
       .then(setItems)
       .catch(() => setItems(catalog.map((item, id) => ({ id, ...item }))));
   }, [catalogRead.data]);
-// The useEffect hook is used to check the user's profile status whenever the wallet address changes.
+
   useEffect(() => {
     if (!wallet.address) {
       setProfileDialogOpen(false);
@@ -68,6 +71,8 @@ export default function RewardsPage() {
         onApprove={approve}
         onRedeem={async (item) => {
           if (!wallet.address || item.currentCost === undefined) throw new Error("Wallet and current cost required");
+
+          // We redeem the selected reward and then show the user's redemption page.
           await redeem({
             rewardId: item.id,
             rewardName: item.name,

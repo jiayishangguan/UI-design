@@ -11,6 +11,9 @@ import { sepolia } from "wagmi/chains";
 
 import { publicEnv } from "@/lib/env";
 
+// We use this file to set up the wallet connection.
+// It connects the app to MetaMask wallets and the Sepolia test network.
+
 const config = createConfig({
   chains: [sepolia],
   connectors: [
